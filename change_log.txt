@@ -1,0 +1,16 @@
+-----------------------------------------------------------
+1.1.1
+	- Add support for custom message icons.
+
+-----------------------------------------------------------
+1.1
+	- Add support for sending messages to private groups and users.
+
+-----------------------------------------------------------
+1.0.1
+	- Added Spanish (es_ES) translation.
+	- Prevent empty messages from being posted to room.
+
+-----------------------------------------------------------
+1.0
+	- It's all new!

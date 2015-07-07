@@ -1,0 +1,178 @@
+# Copyright 2009-2015 Rocketgenius, Inc.
+msgid ""
+msgstr ""
+"Project-Id-Version: Gravity Forms Slack Add-On 1.1.1\n"
+"Report-Msgid-Bugs-To: http://www.gravtiyhelp.com\n"
+"POT-Creation-Date: 2015-05-27 19:21:20+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2015-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Rocketgenius <customerservice@rocketgenius.com>\n"
+"Language-Team: Rocketgenius <customerservice@rocketgenius.com>\n"
+"X-Generator: Gravity Forms Build Server\n"
+"X-Poedit-KeywordsList: "
+"__;_e;_x:1,2c;_ex:1,2c;_n:1,2;_nx:1,2,4c;_n_noop:1,2;_nx_noop:1,2,3c;esc_"
+"attr__;esc_html__;esc_attr_e;esc_html_e;esc_attr_x:1,2c;esc_html_x:1,2c;\n"
+"Project-Id-Version: gravityformsslack\n"
+"Language: en_US\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Basepath: ../\n"
+"X-Poedit-Bookmarks: \n"
+"X-Poedit-Country: United States\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Textdomain-Support: yes\n"
+
+#: class-gf-slack.php:47
+msgid "Authentication Token"
+msgstr ""
+
+#: class-gf-slack.php:55
+msgid "Slack settings have been updated."
+msgstr ""
+
+#: class-gf-slack.php:69
+msgid ""
+"Slack provides simple group chat for your team. Use Gravity Forms to alert "
+"your Slack channels of a new form submission. If you don't have a Slack "
+"account, you can %1$s sign up for one here.%2$s"
+msgstr ""
+
+#: class-gf-slack.php:78
+msgid ""
+"Gravity Forms Slack Add-On requires an API authentication token. You can "
+"find your authentication token by visiting the %1$sSlack Web API page%2$s "
+"while logged into your Slack account."
+msgstr ""
+
+#: class-gf-slack.php:98 class-gf-slack.php:171 class-gf-slack.php:362
+msgid "Name"
+msgstr ""
+
+#: class-gf-slack.php:106 class-gf-slack.php:175 class-gf-slack.php:363
+msgid "Send To"
+msgstr ""
+
+#: class-gf-slack.php:115 class-gf-slack.php:179
+msgid "Slack Channel"
+msgstr ""
+
+#: class-gf-slack.php:124 class-gf-slack.php:183
+msgid "Slack Private Group"
+msgstr ""
+
+#: class-gf-slack.php:133 class-gf-slack.php:187
+msgid "Slack User"
+msgstr ""
+
+#: class-gf-slack.php:142 class-gf-slack.php:191
+msgid "Message"
+msgstr ""
+
+#: class-gf-slack.php:151 class-gf-slack.php:202
+msgid "Conditional Logic"
+msgstr ""
+
+#: class-gf-slack.php:153
+msgid "Enable"
+msgstr ""
+
+#: class-gf-slack.php:154
+msgid "Post to Slack if"
+msgstr ""
+
+#: class-gf-slack.php:172
+msgid "Enter a feed name to uniquely identify this setup."
+msgstr ""
+
+#: class-gf-slack.php:176
+msgid ""
+"Select what type of channel Slack will send the message to: a public "
+"channel, a private group or an IM channel."
+msgstr ""
+
+#: class-gf-slack.php:180
+msgid "Select which Slack channel this feed will post a message to."
+msgstr ""
+
+#: class-gf-slack.php:184
+msgid "Select which Slack private group this feed will post a message to."
+msgstr ""
+
+#: class-gf-slack.php:188
+msgid "Select which Slack user this feed will post a message to."
+msgstr ""
+
+#: class-gf-slack.php:192
+msgid "Enter the message that will be posted to the room."
+msgstr ""
+
+#: class-gf-slack.php:193
+msgid "Available formatting:"
+msgstr ""
+
+#: class-gf-slack.php:203
+msgid ""
+"When conditional logic is enabled, form submissions will only be posted to "
+"Slack when the condition is met. When disabled, all form submissions will "
+"be posted."
+msgstr ""
+
+#: class-gf-slack.php:215
+msgid "Public Channel"
+msgstr ""
+
+#: class-gf-slack.php:219
+msgid "Private Group"
+msgstr ""
+
+#: class-gf-slack.php:223
+msgid "IM Channel to User"
+msgstr ""
+
+#: class-gf-slack.php:329
+msgid "%s Feeds"
+msgstr ""
+
+#: class-gf-slack.php:351
+msgid "%s Settings"
+msgstr ""
+
+#: class-gf-slack.php:354
+msgid "To get started, please configure your %s."
+msgstr ""
+
+#: class-gf-slack.php:380
+msgid "Private Group: %s"
+msgstr ""
+
+#: class-gf-slack.php:386
+msgid "IM Channel to user: %s"
+msgstr ""
+
+#: class-gf-slack.php:392
+msgid "Public Channel: %s"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "Gravity Forms Slack Add-On"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://www.gravityforms.com"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Integrates Gravity Forms with Slack allowing alerts for Gravity Forms "
+"activity to be posted to your Slack channels."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "rocketgenius"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://www.rocketgenius.com"
+msgstr ""
