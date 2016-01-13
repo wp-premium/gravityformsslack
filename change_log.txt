@@ -1,13 +1,18 @@
 -----------------------------------------------------------
-1.1.1
-	- Add support for custom message icons.
+1.3
+	- Added support for custom message usernames using "gform_slack_username" hook. (https://www.gravityhelp.com/documentation/article/gform_slack_username/)
+	- Added support for delaying feed processing until payment by PayPal Standard is successfully completed.
+	- Fixed PHP warning related to attachments.
+
+-----------------------------------------------------------
+1.2
+	- Added support for attaching images to messages.
+    - Added gf_slack() for easily getting a Slack instance.
+	- Added support for custom message icons.
 
 -----------------------------------------------------------
 1.1
-	- Add support for sending messages to private groups and users.
-
------------------------------------------------------------
-1.0.1
+	- Added support for sending messages to private groups and users.
 	- Added Spanish (es_ES) translation.
 	- Prevent empty messages from being posted to room.
 
