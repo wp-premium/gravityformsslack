@@ -1,10 +1,9 @@
 <?php
-	
-/*
+/**
 Plugin Name: Gravity Forms Slack Add-On
 Plugin URI: http://www.gravityforms.com
 Description: Integrates Gravity Forms with Slack allowing alerts for Gravity Forms activity to be posted to your Slack channels.
-Version: 1.3
+Version: 1.4.1
 Author: rocketgenius
 Author URI: http://www.rocketgenius.com
 Text Domain: gravityformsslack
@@ -27,21 +26,47 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-*/
+ */
 
-define('GF_SLACK_VERSION', '1.3');
+define( 'GF_SLACK_VERSION', '1.4.1' );
 
-add_action('gform_loaded', array('GF_Slack_Bootstrap', 'load'), 5);
+// If Gravity Forms is loaded, bootstrap the Slack Add-On.
+add_action( 'gform_loaded', array( 'GF_Slack_Bootstrap', 'load' ), 5 );
 
+/**
+ * Class GF_Slack_Bootstrap
+ *
+ * Handles the loading of the Slack Add-On and registers with the Add-On framework.
+ */
 class GF_Slack_Bootstrap {
 
-	public static function load(){
-		require_once('class-gf-slack.php');
-		GFAddOn::register('GFSlack');
+	/**
+	 * If the Feed Add-On Framework exists, Slack Add-On is loaded.
+	 *
+	 * @access public
+	 * @static
+	 */
+	public static function load() {
+
+		if ( ! method_exists( 'GFForms', 'include_feed_addon_framework' ) ) {
+			return;
+		}
+
+		require_once( 'class-gf-slack.php' );
+
+		GFAddOn::register( 'GFSlack' );
+
 	}
 
 }
 
+/**
+ * Returns an instance of the GFSlack class
+ *
+ * @see    GFSlack::get_instance()
+ *
+ * @return object GFSlack
+ */
 function gf_slack() {
 	return GFSlack::get_instance();
 }
