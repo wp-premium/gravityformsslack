@@ -1,4 +1,28 @@
 -----------------------------------------------------------
+1.4.1
+    - Added upgrade routine to automatically define team name when a valid authentication token exists.
+    - Updated team name plugin setting to automatically add team name when adding a valid authentication token.
+
+-----------------------------------------------------------
+1.4
+    - Added ability to invite users to team.
+    - Added conditional logic to feed settings.
+
+-----------------------------------------------------------
+1.3.3
+    - Added default feed name when creating a new Slack feed.
+	- Added visual icon to "Send To" feed settings field.
+	- Updated API library naming to prevent conflicts with third-party Slack API libraries.
+
+-----------------------------------------------------------
+1.3.2
+	- Added feed duplication support.
+
+-----------------------------------------------------------
+1.3.1
+	- Added the 'gform_slack_process_message_shortcodes' filter for enabling the processing of shortcodes placed in the message. See https://www.gravityhelp.com/documentation/article/gform_slack_process_message_shortcodes/
+
+-----------------------------------------------------------
 1.3
 	- Added support for custom message usernames using "gform_slack_username" hook. (https://www.gravityhelp.com/documentation/article/gform_slack_username/)
 	- Added support for delaying feed processing until payment by PayPal Standard is successfully completed.
