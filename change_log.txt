@@ -1,7 +1,10 @@
 -----------------------------------------------------------
-1.4.1
+1.5
     - Added upgrade routine to automatically define team name when a valid authentication token exists.
     - Updated team name plugin setting to automatically add team name when adding a valid authentication token.
+    - Updated invite to team feature to only be available when API user is an admin.
+    - Updated wording from IM to Direct Message within the feed settings.
+    - Removed duplicate conditional logic setting.
 
 -----------------------------------------------------------
 1.4
