@@ -256,6 +256,11 @@ class GFSlack extends GFFeedAddOn {
 			);
 			$description .= '</p>';
 
+			$description .= '<p>';
+			$description .= '<strong>Note: </strong>';
+			$description .= esc_html__( 'You may be prompted to generate a Test Token for development and testing.  This token is the same token required by Gravity Forms and can be used in production as well as development.  Slack\'s wording regarding these tokens should be disregarded.', 'gravityformsslack' );
+			$description .= '</p>';
+
 		}
 
 		return $description;
@@ -391,15 +396,6 @@ class GFSlack extends GFFeedAddOn {
 						'value'          => 'Entry #{entry_id} ({entry_url}) has been added.',
 						'dependency'     => array( 'field' => 'send_to', 'values' => array( '_notempty_' ) ),
 					),
-					array(
-						'name'           => 'feedCondition',
-						'label'          => esc_html__( 'Conditional Logic', 'gravityformsslack' ),
-						'type'           => 'feed_condition',
-						'checkbox_label' => esc_html__( 'Enable', 'gravityformsslack' ),
-						'instructions'   => esc_html__( 'Export to Slack if', 'gravityformsslack' ),
-						'tooltip'        => '<h6>'. esc_html__( 'Conditional Logic', 'gravityformsslack' ) .'</h6>' . __( 'When conditional logic is enabled, form submissions will only be exported to Slack when the condition is met. When disabled, all form submissions will be posted.', 'gravityformsslack' ),
-						'dependency'     => array( 'field' => 'action', 'values' => array( '_notempty_' ) ),
-					),
 				),
 			),
 		);
@@ -426,7 +422,7 @@ class GFSlack extends GFFeedAddOn {
 			'checkbox_label' => esc_html__( 'Enable', 'gravityformsslack' ),
 			'instructions'   => esc_html__( 'Post to Slack if', 'gravityformsslack' ),
 			'tooltip'        => $this->tooltip_for_feed_setting( 'feed_condition' ),
-			'dependency'     => array( 'field' => 'send_to', 'values' => array( '_notempty_' ) ),
+			'dependency'     => array( 'field' => 'action', 'values' => array( '_notempty_' ) ),
 		);
 
 		return $settings;
@@ -514,8 +510,8 @@ class GFSlack extends GFFeedAddOn {
 			),
 		);
 
-		// If team name is defined, add invite action.
-		if ( $this->get_plugin_setting( 'team_name' ) ) {
+		// If API user is an admin, add invite action.
+		if ( $this->can_invite_to_team() ) {
 			$actions[] = array(
 				'label' => esc_html__( 'Invite to Team', 'gravityformsslack' ),
 				'value' => 'invite',
@@ -549,7 +545,7 @@ class GFSlack extends GFFeedAddOn {
 				'icon'  => 'fa-users',
 			),
 			array(
-				'label' => esc_html__( 'IM Channel', 'gravityformsslack' ),
+				'label' => esc_html__( 'Direct Message', 'gravityformsslack' ),
 				'value' => 'user',
 				'icon'  => 'fa-user-secret',
 			),
@@ -835,7 +831,7 @@ class GFSlack extends GFFeedAddOn {
 			case 'user':
 				$user = $this->api->get_user( $feed['meta']['user'] );
 				$destination = ( rgar( $user, 'user' ) ) ? $user['user']['name'] : $feed['meta']['user'];
-				return sprintf( esc_html__( 'IM Channel to user: %s', 'gravityformsslack' ), $destination );
+				return sprintf( esc_html__( 'Direct message to user: %s', 'gravityformsslack' ), $destination );
 				break;
 
 			default:
@@ -911,6 +907,11 @@ class GFSlack extends GFFeedAddOn {
 		// If no email address is provided, exit.
 		if ( rgblank( $email_address ) ) {
 			$this->add_feed_error( esc_html__( 'Unable to invite user because no email address was provided.', 'gravityformsslack' ), $feed, $entry, $form );
+		}
+
+		// If we do not have permissions to invite user, exit.
+		if ( ! $this->can_invite_to_team() ) {
+			$this->add_feed_error( esc_html__( 'Unable to invite user because Slack API user does not have permission to invite users.', 'gravityformsslack' ), $feed, $entry, $form );
 		}
 
 		// Send invite.
@@ -1166,6 +1167,32 @@ class GFSlack extends GFFeedAddOn {
 
 	}
 
+	/**
+	 * Determine if current API user can invite users to team.
+	 *
+	 * @since  1.4.2
+	 * @access public
+	 *
+	 * @return bool
+	 */
+	public function can_invite_to_team() {
+
+		// If API is not initialized, return false.
+		if ( ! $this->initialize_api() ) {
+			return false;
+		}
+
+		// Run the authentication test to get the current user.
+		$auth_test = $this->api->auth_test();
+		$user_id   = rgar( $auth_test, 'user_id' );
+
+		// Get user.
+		$user = $this->api->get_user( $user_id );
+
+		// Return is admin property.
+		return rgars( $user, 'user/is_admin' );
+
+	}
 
 
 

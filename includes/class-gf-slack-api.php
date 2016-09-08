@@ -65,7 +65,7 @@ class GF_Slack_API {
 
 		// Build request arguments.
 		$args = array(
-			'body'   => $options,
+			'body'   => 'GET' !== $method ? $options : null,
 			'method' => $method,
 		);
 
