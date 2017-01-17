@@ -75,7 +75,7 @@ class GF_Slack_API {
 		// If WP_Error, die. Otherwise, return decoded JSON.
 		if ( is_wp_error( $response ) ) {
 
-			die( 'Request failed. '. $response->get_error_messages() );
+			die( 'Request failed. ' . $response->get_error_message() );
 
 		} else {
 
@@ -205,14 +205,14 @@ class GF_Slack_API {
 	 *
 	 * @since  1.4
 	 * @access public
-	 * @param  string $team Team name.
-	 * @param  string $email Email address.
+	 *
+	 * @param array $params Invite parameters.
 	 *
 	 * @return array
 	 */
-	public function invite_user( $team, $email ) {
+	public function invite_user( $params ) {
 
-		return $this->make_request( 'users.admin.invite', array( 'team' => $team, 'email' => $email, 'set_active' => true ), 'POST' );
+		return $this->make_request( 'users.admin.invite', $params, 'POST' );
 
 	}
 

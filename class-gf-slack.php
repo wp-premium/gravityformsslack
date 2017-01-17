@@ -152,6 +152,7 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @access public
 	 * @static
+	 *
 	 * @return GFSlack
 	 */
 	public static function get_instance() {
@@ -167,8 +168,8 @@ class GFSlack extends GFFeedAddOn {
 	/**
 	 * Plugin starting point. Adds PayPal delayed payment support.
 	 *
+	 * @since  1.3
 	 * @access public
-	 * @return void
 	 */
 	public function init() {
 
@@ -193,6 +194,8 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
+	 *
+	 * @uses GFSlack::plugin_settings_description()
 	 *
 	 * @return array
 	 */
@@ -236,6 +239,8 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
+	 * @uses GFSlack:;initialize_api()
+	 *
 	 * @return string $description
 	 */
 	public function plugin_settings_description() {
@@ -272,8 +277,13 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.4.1
 	 * @access public
-	 * @param  array  $field The field being saved.
+	 *
+	 * @param  array  $field         The field being saved.
 	 * @param  string $field_setting The field value.
+	 *
+	 * @uses GFAddOn::get_posted_settings()
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::get_team_info()
 	 *
 	 * @return string
 	 */
@@ -308,6 +318,8 @@ class GFSlack extends GFFeedAddOn {
 
 
 
+
+
 	// # FEED SETTINGS -------------------------------------------------------------------------------------------------
 
 	/**
@@ -315,6 +327,14 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
+	 *
+	 * @uses GFFeedAddOn::get_default_feed_name()
+	 * @uses GFSlack::channels_for_feed_setting()
+	 * @uses GFSlack::fileupload_fields_for_feed_setting()
+	 * @uses GFSlack::groups_for_feed_setting()
+	 * @uses GFSlack::send_to_for_feed_setting()
+	 * @uses GFSlack::tooltip_for_feed_setting()
+	 * @uses GFSlack::users_for_feed_setting()
 	 *
 	 * @return array $settings
 	 */
@@ -348,6 +368,27 @@ class GFSlack extends GFFeedAddOn {
 						'tooltip'        => $this->tooltip_for_feed_setting( 'email' ),
 						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
 						'args'           => array( 'input_types' => array( 'email' ) ),
+					),
+					array(
+						'name'           => 'first_name',
+						'label'          => esc_html__( 'First Name', 'gravityformsslack' ),
+						'type'           => 'field_select',
+						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
+					),
+					array(
+						'name'           => 'last_name',
+						'label'          => esc_html__( 'Last Name', 'gravityformsslack' ),
+						'type'           => 'field_select',
+						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
+					),
+					array(
+						'name'           => 'channels[]',
+						'label'          => esc_html__( 'Slack Channels', 'gravityformsslack' ),
+						'type'           => 'select',
+						'class'          => 'medium',
+						'choices'        => $this->channels_for_feed_setting(),
+						'multiple'       => true,
+						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
 					),
 					array(
 						'name'           => 'send_to',
@@ -434,7 +475,8 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
-	 * @param  array $field Field name.
+	 *
+	 * @param string $field Field name.
 	 *
 	 * @return string
 	 */
@@ -496,6 +538,8 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.4
 	 * @access public
+	 *
+	 * @uses GFSlack::can_invite_to_team()
 	 *
 	 * @return array
 	 */
@@ -559,7 +603,10 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @return array $choices
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::get_channels()
+	 *
+	 * @return array
 	 */
 	public function channels_for_feed_setting() {
 
@@ -603,7 +650,10 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @return array $choices
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::get_groups()
+	 *
+	 * @return array
 	 */
 	public function groups_for_feed_setting() {
 
@@ -647,7 +697,10 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @return array $choices
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::get_users()
+	 *
+	 * @return array
 	 */
 	public function users_for_feed_setting() {
 
@@ -694,7 +747,10 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @return array $choices
+	 * @uses GFAPI::get_form()
+	 * @uses GFCommon::get_fields_by_type()
+	 *
+	 * @return array
 	 */
 	public function fileupload_fields_for_feed_setting() {
 
@@ -728,6 +784,8 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
+	 *
+	 * @uses GFSlack::initialize_api()
 	 *
 	 * @return bool
 	 */
@@ -781,7 +839,8 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
-	 * @param  array $feed Feed object.
+	 *
+	 * @param array $feed Feed object.
 	 *
 	 * @return string
 	 */
@@ -804,7 +863,13 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
-	 * @param  array $feed Feed object.
+	 *
+	 * @param array $feed Feed object.
+	 *
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::get_channel()
+	 * @uses GF_Slack_API::get_group()
+	 * @uses GF_Slack_API::get_user()
 	 *
 	 * @return string
 	 */
@@ -855,9 +920,15 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
-	 * @param  array $feed The feed object to be processed.
-	 * @param  array $entry The entry object currently being processed.
-	 * @param  array $form The form object currently being processed.
+	 *
+	 * @param array $feed  The feed object to be processed.
+	 * @param array $entry The entry object currently being processed.
+	 * @param array $form  The form object currently being processed.
+	 *
+	 * @uses GFFeedAddOn::add_feed_error()
+	 * @uses GFSlack::initialize_api()
+	 * @uses GFSlack::send_invite()
+	 * @uses GFSlack::send_message()
 	 */
 	public function process_feed( $feed, $entry, $form ) {
 
@@ -887,11 +958,25 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.4
 	 * @access public
-	 * @param  array $feed The feed object to be processed.
-	 * @param  array $entry The entry object currently being processed.
-	 * @param  array $form The form object currently being processed.
+	 *
+	 * @param array $feed  The feed object to be processed.
+	 * @param array $entry The entry object currently being processed.
+	 * @param array $form  The form object currently being processed.
+	 *
+	 * @uses GFAddOn::get_field_value()
+	 * @uses GFAddOn::get_plugin_setting()
+	 * @uses GFCommon::is_invalid_or_empty_email()
+	 * @uses GFFeedAddOn::add_feed_error()
+	 * @uses GFSlack::can_invite_to_team()
+	 * @uses GF_Slack_API::invite_user()
 	 */
 	public function send_invite( $feed, $entry, $form ) {
+
+		// If we do not have permissions to invite user, exit.
+		if ( ! $this->can_invite_to_team() ) {
+			$this->add_feed_error( esc_html__( 'Unable to invite user because Slack API user does not have permission to invite users.', 'gravityformsslack' ), $feed, $entry, $form );
+			return $entry;
+		}
 
 		// Get team name.
 		$team_name = $this->get_plugin_setting( 'team_name' );
@@ -899,24 +984,88 @@ class GFSlack extends GFFeedAddOn {
 		// If no team name is provided, exit.
 		if ( rgblank( $team_name ) ) {
 			$this->add_feed_error( esc_html__( 'Unable to invite user because no team name is defined.', 'gravityformsslack' ), $feed, $entry, $form );
+			return $entry;
 		}
 
 		// Get email address.
 		$email_address = $this->get_field_value( $form, $entry, rgars( $feed, 'meta/email' ) );
 
-		// If no email address is provided, exit.
-		if ( rgblank( $email_address ) ) {
+		// If an invalid email address is provided, exit.
+		if ( GFCommon::is_invalid_or_empty_email( $email_address ) ) {
 			$this->add_feed_error( esc_html__( 'Unable to invite user because no email address was provided.', 'gravityformsslack' ), $feed, $entry, $form );
+			return $entry;
 		}
 
-		// If we do not have permissions to invite user, exit.
-		if ( ! $this->can_invite_to_team() ) {
-			$this->add_feed_error( esc_html__( 'Unable to invite user because Slack API user does not have permission to invite users.', 'gravityformsslack' ), $feed, $entry, $form );
+		// Prepare basic invite parameters.
+		$params = array(
+			'team'       => $team_name,
+			'email'      => $email_address,
+			'set_active' => true,
+		);
+
+		// Populate first name.
+		if ( rgars( $feed, 'meta/first_name' ) ) {
+
+			// Get first name.
+			$first_name = $this->get_field_value( $form, $entry, $feed['meta']['first_name'] );
+
+			// If a first name was found, add it to the invite parameters.
+			if ( ! rgblank( $first_name ) ) {
+				$params['first_name'] = $first_name;
+			}
+
 		}
+
+		// Populate last name.
+		if ( rgars( $feed, 'meta/last_name' ) ) {
+
+			// Get last name.
+			$last_name = $this->get_field_value( $form, $entry, $feed['meta']['last_name'] );
+
+			// If a last name was found, add it to the invite parameters.
+			if ( ! rgblank( $last_name ) ) {
+				$params['last_name'] = $last_name;
+			}
+
+		}
+
+		// Populate channels.
+		if ( rgars( $feed, 'meta/channels' ) ) {
+
+			// Get channels.
+			$channels = $feed['meta']['channels'];
+
+			// Remove empty selections.
+			$channels = array_filter( $channels );
+
+			// If channels were found, convert to string and add to invite parameters.
+			if ( ! empty( $channels ) ) {
+
+				// Convert channels to string.
+				$channels = implode( ',', $channels );
+
+				// Add channels as invite parameters.
+				$params['channels'] = $channels;
+
+			}
+
+		}
+
+		/**
+		 * Modify the invite user parameters before the invite is sent to Slack.
+		 *
+		 * @param array $invite Invite parameters.
+		 * @param array $feed   The current feed object.
+		 * @param array $entry  The current entry object.
+		 * @param array $form   The current form object.
+		 */
+		$params = gf_apply_filters( array( 'gform_slack_invite', $form['id'] ), $params, $feed, $entry, $form );
+
+		// Log the invite to be sent.
+		$this->log_debug( __METHOD__ . '(): Sending invite: ' . print_r( $params, true ) );
 
 		// Send invite.
-		$this->log_debug( __METHOD__ . '(): Sending invite to: ' . $email_address );
-		$invite = $this->api->invite_user( $team_name, $email_address );
+		$invite = $this->api->invite_user( $params );
 
 		// Log result.
 		if ( rgar( $invite, 'ok' ) ) {
@@ -932,18 +1081,47 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.4
 	 * @access public
-	 * @param  array $feed The feed object to be processed.
-	 * @param  array $entry The entry object currently being processed.
-	 * @param  array $form The form object currently being processed.
+	 *
+	 * @param array $feed  The feed object to be processed.
+	 * @param array $entry The entry object currently being processed.
+	 * @param array $form  The form object currently being processed.
+	 *
+	 * @uses GFAddOn::log_debug()
+	 * @uses GFCommon::replace_variables()
+	 * @uses GFFeedAddOn::add_feed_error()
+	 * @uses GFSlack::open_im_channel()
+	 * @uses GFSlack::prepare_attachments()
+	 * @uses GF_Slack_API::post_message()
 	 */
 	public function send_message( $feed, $entry, $form ) {
+
+		/**
+		 * Change the icon being displayed with the message sent to Slack.
+		 * The icon image size should be 48x48.
+		 *
+		 * @param string $icon_url The current icon being used for the Slack message.
+		 * @param array  $feed     The current feed object.
+		 * @param array  $entry    The current entry object.
+		 * @param array  $form     The current form object.
+		 */
+		$message_icon = apply_filters( 'gform_slack_icon', $this->get_base_url() . '/images/icon.png', $feed, $entry, $form );
+
+		/**
+		 * Change the username the message is being sent by before it is sent to Slack.
+		 *
+		 * @param string $username The current username being used for the Slack message.
+		 * @param array  $feed     The current feed object.
+		 * @param array  $entry    The current entry object.
+		 * @param array  $form     The current form object.
+		 */
+		$message_username = gf_apply_filters( array( 'gform_slack_username', $form['id'] ), 'Gravity Forms', $feed, $entry, $form );
 
 		// Prepare notification array.
 		$message = array(
 			'as_user'  => false,
-			'icon_url' => apply_filters( 'gform_slack_icon', $this->get_base_url() . '/images/icon.png', $feed, $entry, $form ),
+			'icon_url' => $message_icon,
 			'text'     => $feed['meta']['message'],
-			'username' => gf_apply_filters( 'gform_slack_username', array( $form['id'] ), 'Gravity Forms', $feed, $entry, $form ),
+			'username' => $message_username,
 		);
 
 		// Add channel based on send_to.
@@ -965,7 +1143,18 @@ class GFSlack extends GFFeedAddOn {
 
 		// Replace merge tags on notification message.
 		$message['text'] = GFCommon::replace_variables( $message['text'], $form, $entry, false, false, false, 'text' );
-		if ( gf_apply_filters( 'gform_slack_process_message_shortcodes', $form['id'], false, $form, $feed ) ) {
+
+		/**
+		 * Enable shortcode processing in the Slack message.
+		 *
+		 * @param bool  $process_shortcodes Is shortcode processing enabled?
+		 * @param array $form               The current form object.
+		 * @param array $feed               The current feed object.
+		 */
+		$process_shortcodes = gf_apply_filters( 'gform_slack_process_message_shortcodes', $form['id'], false, $form, $feed );
+
+		// Process shortcodes.
+		if ( $process_shortcodes ) {
 			$message['text'] = do_shortcode( $message['text'] );
 		}
 
@@ -996,12 +1185,15 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
-	 * @param  array $message Slack message object.
-	 * @param  array $feed The feed object to be processed.
-	 * @param  array $entry The entry object currently being processed.
-	 * @param  array $form The form object currently being processed.
 	 *
-	 * @return array $message
+	 * @param array $message Slack message object.
+	 * @param array $feed    The feed object to be processed.
+	 * @param array $entry   The entry object currently being processed.
+	 * @param array $form    The form object currently being processed.
+	 *
+	 * @uses GFAddOn::get_field_value()
+	 *
+	 * @return array
 	 */
 	public function prepare_attachments( $message, $feed, $entry, $form ) {
 
@@ -1086,7 +1278,13 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
-	 * @param  string $auth_token Authentication token.
+	 *
+	 * @param string $auth_token Authentication token.
+	 *
+	 * @uses GFAddOn::get_plugin_setting()
+	 * @uses GFAddOn::log_debug()
+	 * @uses GFAddOn::log_error()
+	 * @uses GF_Slack_API::auth_test()
 	 *
 	 * @return bool|null
 	 */
@@ -1148,7 +1346,11 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
-	 * @param  string $user User ID.
+	 *
+	 * @param string $user User ID.
+	 *
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::open_im()
 	 *
 	 * @return null|string
 	 */
@@ -1172,6 +1374,10 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.4.2
 	 * @access public
+	 *
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::auth_test()
+	 * @uses GF_Slack_API::get_user()
 	 *
 	 * @return bool
 	 */
@@ -1204,7 +1410,15 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.4
 	 * @access public
-	 * @param  string $previous_version Previous version number.
+	 *
+	 * @param string $previous_version Previous version number.
+	 *
+	 * @uses GFAddOn::get_plugin_settings()
+	 * @uses GFAddOn::update_plugin_settings()
+	 * @uses GFFeedAddOn::get_feeds()
+	 * @uses GFFeedAddOn::update_feed_meta()
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::get_team_info()
 	 */
 	public function upgrade( $previous_version ) {
 
