@@ -86,12 +86,26 @@ class GF_Slack_API {
 	}
 
 	/**
+	 * Revoke authentication token.
+	 *
+	 * @since  1.7
+	 * @access public
+	 *
+	 * @return array
+	 */
+	public function auth_revoke() {
+
+		return $this->make_request( 'auth.revoke' );
+
+	}
+
+	/**
 	 * Test authentication token.
 	 *
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @return bool
+	 * @return array
 	 */
 	public function auth_test() {
 
