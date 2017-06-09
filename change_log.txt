@@ -1,4 +1,9 @@
 -----------------------------------------------------------
+1.7
+    - Removed "Select a Channel" option from Channels feed setting when inviting to team.
+	- Updated initial authentication process.
+
+-----------------------------------------------------------
 1.6
     - Added "gform_slack_invite" filter for modifying invite user parameters.
 	- Added support for auto-inviting to specific channels when inviting users to team.

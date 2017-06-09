@@ -183,11 +183,131 @@ class GFSlack extends GFFeedAddOn {
 
 	}
 
+	/**
+	 * Add AJAX callbacks.
+	 *
+	 * @since  1.7
+	 * @access public
+	 */
+	public function init_ajax() {
+
+		parent::init_ajax();
+
+		// Add AJAX callback for de-authorizing with Dropbox.
+		add_action( 'wp_ajax_gfslack_deauthorize', array( $this, 'ajax_deauthorize' ) );
+
+	}
+
+	/**
+	 * Enqueue admin scripts.
+	 *
+	 * @since  1.7
+	 * @access public
+	 *
+	 * @return array
+	 */
+	public function scripts() {
+
+		$scripts = array(
+			array(
+				'handle'  => 'gform_slack_pluginsettings',
+				'deps'    => array( 'jquery' ),
+				'src'     => $this->get_base_url() . '/js/plugin_settings.js',
+				'version' => $this->_version,
+				'enqueue' => array(
+					array(
+						'admin_page' => array( 'plugin_settings' ),
+						'tab'        => $this->_slug,
+					),
+				),
+				'strings' => array(
+					'disconnect' => esc_html__( 'Are you sure you want to disconnect from Slack?', 'gravityformsslack' ),
+				),
+			),
+		);
+
+		return array_merge( parent::scripts(), $scripts );
+
+	}
+
+	/**
+	 * Enqueue needed stylesheets.
+	 *
+	 * @since  1.7
+	 * @access public
+	 *
+	 * @return array
+	 */
+	public function styles() {
+
+		$styles = array(
+			array(
+				'handle'  => 'gform_slack_pluginsettings',
+				'src'     => $this->get_base_url() . '/css/plugin_settings.css',
+				'version' => $this->_version,
+				'enqueue' => array(
+					array(
+						'admin_page' => array( 'plugin_settings' ),
+						'tab'        => $this->_slug,
+					),
+				),
+			),
+		);
+
+		return array_merge( parent::styles(), $styles );
+
+	}
+
 
 
 
 
 	// # PLUGIN SETTINGS -----------------------------------------------------------------------------------------------
+
+	/**
+	 * Maybe save access token.
+	 *
+	 * @since  1.7
+	 * @access public
+	 *
+	 * @uses AccessToken::getToken()
+	 * @uses DropboxAPI::getAuthHelper()
+	 * @uses DropboxApp
+	 * @uses DropboxAuthHelper::getAccessToken()
+	 * @uses GFAddOn::get_plugin_settings()
+	 * @uses GFAddOn::update_plugin_settings()
+	 * @uses GFCommon::add_error_message()
+	 */
+	public function plugin_settings_page() {
+
+		// If access token is provided, save it.
+		if ( rgget( 'access_token' ) ) {
+
+			// Get current plugin settings.
+			$settings = $this->get_plugin_settings();
+
+			// Add access token to plugin settings.
+			$settings['auth_token'] = rgget( 'access_token' );
+
+			// Get team name.
+			$settings['team_name'] = $this->get_team_name( $settings['auth_token'] );
+
+			// Save plugin settings.
+			$this->update_plugin_settings( $settings );
+
+		}
+
+		// If error is provided, display message.
+		if ( rgget( 'auth_error' ) ) {
+
+			// Add error message.
+			GFCommon::add_error_message( esc_html__( 'Unable to authenticate with Slack.', 'gravityformsslack' ) );
+
+		}
+
+		return parent::plugin_settings_page();
+
+	}
 
 	/**
 	 * Setup plugin settings fields.
@@ -203,23 +323,23 @@ class GFSlack extends GFFeedAddOn {
 
 		return array(
 			array(
-				'description' => $this->plugin_settings_description(),
+				'description' => sprintf(
+					'<p>%s</p>',
+					sprintf(
+						esc_html__( 'Slack provides simple group chat for your team. Use Gravity Forms to alert your Slack channels of a new form submission. If you don\'t have a Slack account, you can %1$s sign up for one here.%2$s', 'gravityformsslack' ),
+						'<a href="https://www.slack.com/" target="_blank">', '</a>'
+					)
+				),
 				'fields'      => array(
 					array(
 						'name'              => 'auth_token',
-						'label'             => esc_html__( 'Authentication Token', 'gravityformsslack' ),
-						'type'              => 'text',
-						'class'             => 'large',
+						'type'              => 'auth_token',
 						'feedback_callback' => array( $this, 'initialize_api' ),
 					),
 					array(
 						'name'              => 'team_name',
-						'label'             => esc_html__( 'Team Name', 'gravityformsslack' ),
-						'type'              => 'text',
-						'class'             => 'small',
-						'after_input'       => '.slack.com',
+						'type'              => 'hidden',
 						'readonly'          => true,
-						'save_callback'     => array( $this, 'save_team_name' ),
 					),
 					array(
 						'type'              => 'save',
@@ -234,85 +354,119 @@ class GFSlack extends GFFeedAddOn {
 	}
 
 	/**
-	 * Prepare plugin settings description.
+	 * Create Generate Auth Token settings field.
 	 *
-	 * @since  1.0
+	 * @since  1.7
 	 * @access public
 	 *
-	 * @uses GFSlack:;initialize_api()
+	 * @param array $field Field settings.
+	 * @param bool  $echo  Display field. Defaults to true.
 	 *
-	 * @return string $description
+	 * @uses GFSlack::initialize_api()
+	 *
+	 * @return string
 	 */
-	public function plugin_settings_description() {
+	public function settings_auth_token( $field, $echo = true ) {
 
-		$description  = '<p>';
-		$description .= sprintf(
-			esc_html__( 'Slack provides simple group chat for your team. Use Gravity Forms to alert your Slack channels of a new form submission. If you don\'t have a Slack account, you can %1$s sign up for one here.%2$s', 'gravityformsslack' ),
-			'<a href="https://www.slack.com/" target="_blank">', '</a>'
-		);
-		$description .= '</p>';
+		// Initialize return HTML.
+		$html = '';
 
-		if ( ! $this->initialize_api() ) {
+		// If Slack is authenticated, display de-authorize button.
+		if ( $this->initialize_api() ) {
 
-			$description .= '<p>';
-			$description .= sprintf(
-				esc_html__( 'Gravity Forms Slack Add-On requires an API authentication token. You can find your authentication token by visiting the %1$sSlack Web API page%2$s while logged into your Slack account.', 'gravityformsslack' ),
-				'<a href="https://api.slack.com/web" target="_blank">', '</a>'
+			// Get account information.
+			$account = $this->api->auth_test();
+
+			$html .= '<p>' . esc_html__( 'Signed into Slack team: ', 'gravityformsslack' );
+			$html .= sprintf( '%s (%s)', esc_html( $account['team'] ), esc_html( $account['user'] ) );
+			$html .= '</p>';
+			$html .= sprintf(
+				' <a href="#" class="button button-primary" id="gform_slack_deauth_button">%1$s</a>',
+				esc_html__( 'Disconnect Slack', 'gravityformsslack' )
 			);
-			$description .= '</p>';
 
-			$description .= '<p>';
-			$description .= '<strong>Note: </strong>';
-			$description .= esc_html__( 'You may be prompted to generate a Test Token for development and testing.  This token is the same token required by Gravity Forms and can be used in production as well as development.  Slack\'s wording regarding these tokens should be disregarded.', 'gravityformsslack' );
-			$description .= '</p>';
+		} else {
+
+			// Prepare authorization URL.
+			$settings_url = urlencode( admin_url( 'admin.php?page=gf_settings&subview=' . $this->_slug ) );
+			$auth_url     = add_query_arg( array( 'redirect_to' => $settings_url ), 'https://www.gravityhelp.com/wp-json/gravityapi/v1/auth/slack' );
+
+			$html .= sprintf(
+				'<a href="%2$s" class="button button-primary" id="gform_slack_auth_button">%1$s</a>',
+				esc_html__( 'Connect to Slack', 'gravityformsslack' ),
+				$auth_url
+			);
 
 		}
 
-		return $description;
+		if ( $echo ) {
+			echo $html;
+		}
+
+		return $html;
 
 	}
 
 	/**
-	 * Get and save team name when saving plugin settings.
+	 * Deauthorize with Slack.
 	 *
-	 * @since  1.4.1
+	 * @since  1.7
 	 * @access public
 	 *
-	 * @param  array  $field         The field being saved.
-	 * @param  string $field_setting The field value.
-	 *
-	 * @uses GFAddOn::get_posted_settings()
+	 * @uses GFAddOn::get_plugin_settings()
+	 * @uses GFAddOn::log_debug()
+	 * @uses GFAddOn::log_error()
+	 * @uses GFAddOn::update_plugin_settings()
 	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::get_team_info()
-	 *
-	 * @return string
+	 * @uses GF_Slack_API::auth_revoke()
 	 */
-	public function save_team_name( $field, $field_setting ) {
+	public function ajax_deauthorize() {
 
-		// Get posted settings.
-		$settings = $this->get_posted_settings();
+		// Get plugin settings.
+		$settings = $this->get_plugin_settings();
 
-		// If API is initialized, get team info and save domain.
-		if ( ! rgblank( $settings['auth_token'] ) && true === $this->initialize_api( $settings['auth_token'] ) ) {
+		// Initialize Slack API.
+		$this->initialize_api();
 
-			// Get team info.
-			$team_info = $this->api->get_team_info();
+		try {
 
-			// Set field setting to domain.
-			$field_setting = rgars( $team_info, 'team/domain' );
+			// Revoke access token.
+			$revoke = $this->api->auth_revoke();
 
-		} else {
+			// Send JSON based on revoke response.
+			if ( rgar( $revoke, 'ok' ) ) {
 
-			// Set field setting to null.
-			$field_setting = '';
+				// Log that we revoked the access token.
+				$this->log_debug( __METHOD__ . '(): Access token revoked.' );
+	
+				// Reset settings.
+				$settings = array();
+	
+				// Save settings.
+				$this->update_plugin_settings( $settings );
+	
+				// Return success response.
+				wp_send_json_success();
+				
+			} else {
+
+				// Log that we could not revoke the access token.
+				$this->log_error( __METHOD__ . '(): Unable to revoke access token; '. rgar( $revoke, 'error' ) );
+	
+				// Return error response.
+				wp_send_json_error( array( 'message' => esc_html__( 'Unable to de-authorize with Slack.', 'gravityformsslack' ) ) );
+
+			}
+
+		} catch ( \Exception $e ) {
+
+			// Log that we could not revoke the access token.
+			$this->log_error( __METHOD__ . '(): Unable to revoke access token; '. $e->getMessage() );
+
+			// Return error response.
+			wp_send_json_error( array( 'message' => $e->getMessage() ) );
 
 		}
-
-		// Set posted setting.
-		$_gaddon_posted_settings['team_name'] = $field_setting;
-
-		// Return field setting.
-		return $field_setting;
 
 	}
 
@@ -386,7 +540,7 @@ class GFSlack extends GFFeedAddOn {
 						'label'          => esc_html__( 'Slack Channels', 'gravityformsslack' ),
 						'type'           => 'select',
 						'class'          => 'medium',
-						'choices'        => $this->channels_for_feed_setting(),
+						'choices'        => $this->channels_for_feed_setting( false ),
 						'multiple'       => true,
 						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
 					),
@@ -603,20 +757,25 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
+	 * @param bool $include_initital Include initital "Select a Channel" choice.
+	 *
 	 * @uses GFSlack::initialize_api()
 	 * @uses GF_Slack_API::get_channels()
 	 *
 	 * @return array
 	 */
-	public function channels_for_feed_setting() {
+	public function channels_for_feed_setting( $include_initial = true ) {
 
-		// Setup choices array.
-		$choices = array(
-			array(
+		// Initialize choices array.
+		$choices = array();
+
+		// Add initial choice.
+		if ( $include_initial ) {
+			$choices[] = array(
 				'label' => esc_html__( 'Select a Channel', 'gravityformsslack' ),
 				'value' => '',
-			),
-		);
+			);
+		}
 
 		// If Slack API instance is not initialized, return choices.
 		if ( ! $this->initialize_api() ) {
@@ -1271,7 +1430,7 @@ class GFSlack extends GFFeedAddOn {
 
 
 
-	// # HELPER FUNCTIONS ----------------------------------------------------------------------------------------------
+	// # HELPER METHODS ------------------------------------------------------------------------------------------------
 
 	/**
 	 * Initializes Slack API if credentials are valid.
@@ -1397,6 +1556,39 @@ class GFSlack extends GFFeedAddOn {
 
 		// Return is admin property.
 		return rgars( $user, 'user/is_admin' );
+
+	}
+
+	/**
+	 * Get and save team name when saving plugin settings.
+	 *
+	 * @since  1.4.1
+	 * @access public
+	 *
+	 * @param string $auth_token Authentication token.
+	 *
+	 * @uses GFAddOn::get_plugin_settings()
+	 * @uses GFAddOn::update_plugin_settings()
+	 * @uses GFSlack::initialize_api()
+	 * @uses GF_Slack_API::get_team_info()
+	 *
+	 * @return string|null
+	 */
+	public function get_team_name( $auth_token = '' ) {
+
+		// If API is initialized, get team info and save domain.
+		if ( $this->initialize_api( $auth_token ) ) {
+
+			// Get team info.
+			$team_info = $this->api->get_team_info();
+
+			return rgars( $team_info, 'team/domain' );
+
+		} else {
+
+			return null;
+
+		}
 
 	}
 
