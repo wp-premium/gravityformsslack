@@ -1,11 +1,12 @@
 <?php
 /**
 Plugin Name: Gravity Forms Slack Add-On
-Plugin URI: http://www.gravityforms.com
+Plugin URI: https://www.gravityforms.com
 Description: Integrates Gravity Forms with Slack, allowing alerts for Gravity Forms activity to be posted to your Slack channels.
-Version: 1.7
+Version: 1.8
 Author: rocketgenius
-Author URI: http://www.rocketgenius.com
+Author URI: https://www.rocketgenius.com
+License: GPL-2.0+
 Text Domain: gravityformsslack
 Domain Path: /languages
 
@@ -28,7 +29,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-define( 'GF_SLACK_VERSION', '1.7' );
+if ( ! defined( 'ABSPATH' ) ) {
+	die();
+}
+
+define( 'GF_SLACK_VERSION', '1.8' );
 
 // If Gravity Forms is loaded, bootstrap the Slack Add-On.
 add_action( 'gform_loaded', array( 'GF_Slack_Bootstrap', 'load' ), 5 );
