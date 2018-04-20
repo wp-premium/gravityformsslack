@@ -1,13 +1,13 @@
-# Copyright 2009-2017 Rocketgenius, Inc.
+# Copyright 2009-2018 Rocketgenius, Inc.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gravity Forms Slack Add-On 1.7\n"
+"Project-Id-Version: Gravity Forms Slack Add-On 1.8\n"
 "Report-Msgid-Bugs-To: http://www.gravtiyhelp.com\n"
-"POT-Creation-Date: 2017-05-16 15:55:16+00:00\n"
+"POT-Creation-Date: 2018-04-09 21:22:01+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2017-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Rocketgenius <customerservice@rocketgenius.com>\n"
 "Language-Team: Rocketgenius <customerservice@rocketgenius.com>\n"
 "X-Generator: Gravity Forms Build Server\n"
@@ -24,223 +24,235 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Textdomain-Support: yes\n"
 
-#: class-gf-slack.php:180
+#: class-gf-slack.php:184
 msgid "Send message to Slack only when payment is received."
 msgstr ""
 
-#: class-gf-slack.php:224
+#: class-gf-slack.php:228
 msgid "Are you sure you want to disconnect from Slack?"
 msgstr ""
 
-#: class-gf-slack.php:304
+#: class-gf-slack.php:306
 msgid "Unable to authenticate with Slack."
 msgstr ""
 
-#: class-gf-slack.php:329
+#: class-gf-slack.php:331
 msgid ""
 "Slack provides simple group chat for your team. Use Gravity Forms to alert "
 "your Slack channels of a new form submission. If you don't have a Slack "
 "account, you can %1$s sign up for one here.%2$s"
 msgstr ""
 
-#: class-gf-slack.php:347
-msgid "Slack settings have been updated."
-msgstr ""
-
-#: class-gf-slack.php:380
-msgid "Signed into Slack team: "
-msgstr ""
-
-#: class-gf-slack.php:385
-msgid "Disconnect Slack"
-msgstr ""
-
-#: class-gf-slack.php:396
+#: class-gf-slack.php:349 class-gf-slack.php:440
 msgid "Connect to Slack"
 msgstr ""
 
-#: class-gf-slack.php:457
+#: class-gf-slack.php:352
+msgid "or"
+msgstr ""
+
+#: class-gf-slack.php:353
+msgid "use standard authentication"
+msgstr ""
+
+#: class-gf-slack.php:356
+msgid "Slack settings have been updated."
+msgstr ""
+
+#: class-gf-slack.php:424
+msgid "Signed into Slack team: "
+msgstr ""
+
+#: class-gf-slack.php:429
+msgid "Disconnect Slack"
+msgstr ""
+
+#: class-gf-slack.php:447
+msgid "Legacy Token"
+msgstr ""
+
+#: class-gf-slack.php:532
 msgid "Unable to de-authorize with Slack."
 msgstr ""
 
-#: class-gf-slack.php:502 class-gf-slack.php:643 class-gf-slack.php:989
+#: class-gf-slack.php:577 class-gf-slack.php:718 class-gf-slack.php:1065
 msgid "Name"
 msgstr ""
 
-#: class-gf-slack.php:511 class-gf-slack.php:990
+#: class-gf-slack.php:586 class-gf-slack.php:1066
 msgid "Action"
 msgstr ""
 
-#: class-gf-slack.php:519 class-gf-slack.php:651
+#: class-gf-slack.php:594 class-gf-slack.php:726
 msgid "Email Address"
 msgstr ""
 
-#: class-gf-slack.php:528
+#: class-gf-slack.php:603
 msgid "First Name"
 msgstr ""
 
-#: class-gf-slack.php:534
+#: class-gf-slack.php:609
 msgid "Last Name"
 msgstr ""
 
-#: class-gf-slack.php:540
+#: class-gf-slack.php:615
 msgid "Slack Channels"
 msgstr ""
 
-#: class-gf-slack.php:549 class-gf-slack.php:647 class-gf-slack.php:991
+#: class-gf-slack.php:624 class-gf-slack.php:722 class-gf-slack.php:1067
 msgid "Send To"
 msgstr ""
 
-#: class-gf-slack.php:559 class-gf-slack.php:655
+#: class-gf-slack.php:634 class-gf-slack.php:730
 msgid "Slack Channel"
 msgstr ""
 
-#: class-gf-slack.php:568 class-gf-slack.php:659
+#: class-gf-slack.php:643 class-gf-slack.php:734
 msgid "Slack Private Group"
 msgstr ""
 
-#: class-gf-slack.php:577 class-gf-slack.php:663
+#: class-gf-slack.php:652 class-gf-slack.php:738
 msgid "Slack User"
 msgstr ""
 
-#: class-gf-slack.php:586 class-gf-slack.php:667
+#: class-gf-slack.php:661 class-gf-slack.php:742
 msgid "Message"
 msgstr ""
 
-#: class-gf-slack.php:605 class-gf-slack.php:678
+#: class-gf-slack.php:680 class-gf-slack.php:753
 msgid "Image Attachments"
 msgstr ""
 
-#: class-gf-slack.php:615 class-gf-slack.php:682
+#: class-gf-slack.php:690 class-gf-slack.php:757
 msgid "Conditional Logic"
 msgstr ""
 
-#: class-gf-slack.php:617
+#: class-gf-slack.php:692
 msgid "Enable"
 msgstr ""
 
-#: class-gf-slack.php:618
+#: class-gf-slack.php:693
 msgid "Post to Slack if"
 msgstr ""
 
-#: class-gf-slack.php:644
+#: class-gf-slack.php:719
 msgid "Enter a feed name to uniquely identify this setup."
 msgstr ""
 
-#: class-gf-slack.php:648
+#: class-gf-slack.php:723
 msgid ""
 "Select what type of channel Slack will send the message to: a public "
 "channel, a private group or an IM channel."
 msgstr ""
 
-#: class-gf-slack.php:652
+#: class-gf-slack.php:727
 msgid "Select what email field will be used to send the Slack invite."
 msgstr ""
 
-#: class-gf-slack.php:656
+#: class-gf-slack.php:731
 msgid "Select which Slack channel this feed will post a message to."
 msgstr ""
 
-#: class-gf-slack.php:660
+#: class-gf-slack.php:735
 msgid "Select which Slack private group this feed will post a message to."
 msgstr ""
 
-#: class-gf-slack.php:664
+#: class-gf-slack.php:739
 msgid "Select which Slack user this feed will post a message to."
 msgstr ""
 
-#: class-gf-slack.php:668
+#: class-gf-slack.php:743
 msgid "Enter the message that will be posted to the room."
 msgstr ""
 
-#: class-gf-slack.php:669
+#: class-gf-slack.php:744
 msgid "Available formatting:"
 msgstr ""
 
-#: class-gf-slack.php:679
+#: class-gf-slack.php:754
 msgid ""
 "Select which file upload fields will be attached to the Slack message. Only "
 "image files will be attached."
 msgstr ""
 
-#: class-gf-slack.php:683
+#: class-gf-slack.php:758
 msgid ""
 "When conditional logic is enabled, form submissions will only be posted to "
 "Slack when the condition is met. When disabled, all form submissions will "
 "be posted."
 msgstr ""
 
-#: class-gf-slack.php:705 class-gf-slack.php:1014
+#: class-gf-slack.php:780 class-gf-slack.php:1090
 msgid "Send Message"
 msgstr ""
 
-#: class-gf-slack.php:714 class-gf-slack.php:1011
+#: class-gf-slack.php:789 class-gf-slack.php:1087
 msgid "Invite to Team"
 msgstr ""
 
-#: class-gf-slack.php:736
+#: class-gf-slack.php:811
 msgid "Public Channel"
 msgstr ""
 
-#: class-gf-slack.php:741
+#: class-gf-slack.php:816
 msgid "Private Group"
 msgstr ""
 
-#: class-gf-slack.php:746
+#: class-gf-slack.php:821
 msgid "Direct Message"
 msgstr ""
 
-#: class-gf-slack.php:775
+#: class-gf-slack.php:850
 msgid "Select a Channel"
 msgstr ""
 
-#: class-gf-slack.php:822
+#: class-gf-slack.php:897
 msgid "Select a Group"
 msgstr ""
 
-#: class-gf-slack.php:869
+#: class-gf-slack.php:944
 msgid "Select a User"
 msgstr ""
 
-#: class-gf-slack.php:1052
+#: class-gf-slack.php:1129
 msgid "Private Group: %s"
 msgstr ""
 
-#: class-gf-slack.php:1058
+#: class-gf-slack.php:1136
 msgid "Direct message to user: %s"
 msgstr ""
 
-#: class-gf-slack.php:1064
+#: class-gf-slack.php:1143
 msgid "Public Channel: %s"
 msgstr ""
 
-#: class-gf-slack.php:1096
+#: class-gf-slack.php:1175
 msgid "Feed was not processed because API was not initialized."
 msgstr ""
 
-#: class-gf-slack.php:1136
+#: class-gf-slack.php:1218
 msgid ""
 "Unable to invite user because Slack API user does not have permission to "
 "invite users."
 msgstr ""
 
-#: class-gf-slack.php:1145
+#: class-gf-slack.php:1227
 msgid "Unable to invite user because no team name is defined."
 msgstr ""
 
-#: class-gf-slack.php:1154
+#: class-gf-slack.php:1236
 msgid "Unable to invite user because no email address was provided."
 msgstr ""
 
-#: class-gf-slack.php:1233
+#: class-gf-slack.php:1315
 msgid "User was not invited."
 msgstr ""
 
-#: class-gf-slack.php:1322
+#: class-gf-slack.php:1414
 msgid "Notification message is empty."
 msgstr ""
 
-#: class-gf-slack.php:1337
+#: class-gf-slack.php:1429
 msgid "Message was not posted to channel."
 msgstr ""
 
@@ -249,7 +261,7 @@ msgid "Gravity Forms Slack Add-On"
 msgstr ""
 
 #. Plugin URI of the plugin/theme
-msgid "http://www.gravityforms.com"
+msgid "https://www.gravityforms.com"
 msgstr ""
 
 #. Description of the plugin/theme
@@ -263,5 +275,5 @@ msgid "rocketgenius"
 msgstr ""
 
 #. Author URI of the plugin/theme
-msgid "http://www.rocketgenius.com"
+msgid "https://www.rocketgenius.com"
 msgstr ""

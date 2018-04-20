@@ -1,5 +1,9 @@
 <?php
 
+if ( ! class_exists( 'GFForms') ) {
+	die();
+}
+
 /**
  * Gravity Forms Slack Add-On API library.
  *
