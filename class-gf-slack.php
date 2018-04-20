@@ -1,5 +1,9 @@
 <?php
 
+if ( ! class_exists( 'GFForms') ) {
+	die();
+}
+
 GFForms::include_feed_addon_framework();
 
 /**
@@ -221,7 +225,8 @@ class GFSlack extends GFFeedAddOn {
 					),
 				),
 				'strings' => array(
-					'disconnect' => esc_html__( 'Are you sure you want to disconnect from Slack?', 'gravityformsslack' ),
+					'disconnect'        => esc_html__( 'Are you sure you want to disconnect from Slack?', 'gravityformsslack' ),
+					'pluginSettingsURL' => admin_url( 'admin.php?page=gf_settings&subview=' . $this->get_slug() ),
 				),
 			),
 		);
@@ -270,13 +275,10 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.7
 	 * @access public
 	 *
-	 * @uses AccessToken::getToken()
-	 * @uses DropboxAPI::getAuthHelper()
-	 * @uses DropboxApp
-	 * @uses DropboxAuthHelper::getAccessToken()
-	 * @uses GFAddOn::get_plugin_settings()
-	 * @uses GFAddOn::update_plugin_settings()
-	 * @uses GFCommon::add_error_message()
+	 * @uses   GFAddOn::get_plugin_settings()
+	 * @uses   GFAddOn::update_plugin_settings()
+	 * @uses   GFCommon::add_error_message()
+	 * @uses   GFSlack::get_team_name()
 	 */
 	public function plugin_settings_page() {
 
@@ -315,7 +317,7 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @uses GFSlack::plugin_settings_description()
+	 * @uses   GFSlack::plugin_settings_description()
 	 *
 	 * @return array
 	 */
@@ -337,19 +339,60 @@ class GFSlack extends GFFeedAddOn {
 						'feedback_callback' => array( $this, 'initialize_api' ),
 					),
 					array(
-						'name'              => 'team_name',
-						'type'              => 'hidden',
-						'readonly'          => true,
+						'name'          => 'team_name',
+						'type'          => 'hidden',
+						'readonly'      => true,
+						'save_callback' => array( $this, 'update_team_name' ),
 					),
 					array(
-						'type'              => 'save',
-						'messages'          => array(
+						'type'        => 'save',
+						'value'       => esc_html__( 'Connect to Slack', 'gravityformsslack' ),
+						'after_input' => sprintf(
+							' %s <a href="#" id="gform_slack_auth_standard">%s</a>',
+							esc_html__( 'or', 'gravityformsslack' ),
+							esc_html__( 'use standard authentication' )
+						),
+						'messages'    => array(
 							'success' => esc_html__( 'Slack settings have been updated.', 'gravityformsslack' ),
 						),
 					),
 				),
 			),
 		);
+
+	}
+
+	/**
+	 * Update team name when saving legacy token.
+	 *
+	 * @since  1.8
+	 * @access public
+	 *
+	 * @param array  $field       Field settings.
+	 * @param string $field_value Field value.
+	 *
+	 * @uses   GFAddOn::get_posted_settings()
+	 * @uses   GFSlack::get_team_name()
+	 *
+	 * @return null|string
+	 */
+	public function update_team_name( $field, $field_value ) {
+
+		// Get posted settings.
+		$settings = $this->get_posted_settings();
+
+		// If auth token was not provided, return.
+		if ( ! rgar( $settings, 'auth_token' ) ) {
+			return $field_value;
+		}
+
+		// Get team name.
+		$team_name = $this->get_team_name( $settings['auth_token'] );
+
+		// Update posted setting.
+		$_gaddon_posted_settings[ $field['name'] ] = $team_name;
+
+		return $team_name;
 
 	}
 
@@ -362,7 +405,8 @@ class GFSlack extends GFFeedAddOn {
 	 * @param array $field Field settings.
 	 * @param bool  $echo  Display field. Defaults to true.
 	 *
-	 * @uses GFSlack::initialize_api()
+	 * @uses   GFAddOn::settings_text()
+	 * @uses   GFSlack::initialize_api()
 	 *
 	 * @return string
 	 */
@@ -392,11 +436,48 @@ class GFSlack extends GFFeedAddOn {
 			$auth_url     = add_query_arg( array( 'redirect_to' => $settings_url ), 'https://www.gravityhelp.com/wp-json/gravityapi/v1/auth/slack' );
 
 			$html .= sprintf(
-				'<a href="%2$s" class="button button-primary" id="gform_slack_auth_button">%1$s</a>',
+				'<span id="gform_slack_auth_container"><a href="%2$s" class="button button-primary" id="gform_slack_auth_button">%1$s</a> or <a href="#" id="gform_slack_auth_legacy">use a legacy token</a></span><br />',
 				esc_html__( 'Connect to Slack', 'gravityformsslack' ),
 				$auth_url
 			);
 
+			// Prepare Legacy Token field.
+			$legacy                = $field;
+			$legacy['class']       = 'large';
+			$legacy['placeholder'] = esc_html__( 'Legacy Token', 'gravityformsslack' );
+
+			// Display legacy token field.
+			$html .= $this->settings_text( $legacy, false );
+
+		}
+
+		if ( $echo ) {
+			echo $html;
+		}
+
+		return $html;
+
+	}
+
+	/**
+	 * Display HTML after save button.
+	 *
+	 * @since  1.8
+	 * @access public
+	 *
+	 * @param array $field Field settings.
+	 * @param bool  $echo  Display field. Defaults to true.
+	 *
+	 * @uses   GFAddOn::settings_save()
+	 *
+	 * @return string
+	 */
+	public function settings_save( $field, $echo = true ) {
+
+		$html = parent::settings_save( $field, false );
+
+		if ( rgar( $field, 'after_input' ) ) {
+			$html .= $field['after_input'];
 		}
 
 		if ( $echo ) {
@@ -413,17 +494,14 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.7
 	 * @access public
 	 *
-	 * @uses GFAddOn::get_plugin_settings()
-	 * @uses GFAddOn::log_debug()
-	 * @uses GFAddOn::log_error()
-	 * @uses GFAddOn::update_plugin_settings()
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::auth_revoke()
+	 * @uses   GFAddOn::get_plugin_settings()
+	 * @uses   GFAddOn::log_debug()
+	 * @uses   GFAddOn::log_error()
+	 * @uses   GFAddOn::update_plugin_settings()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::auth_revoke()
 	 */
 	public function ajax_deauthorize() {
-
-		// Get plugin settings.
-		$settings = $this->get_plugin_settings();
 
 		// Initialize Slack API.
 		$this->initialize_api();
@@ -438,30 +516,27 @@ class GFSlack extends GFFeedAddOn {
 
 				// Log that we revoked the access token.
 				$this->log_debug( __METHOD__ . '(): Access token revoked.' );
-	
-				// Reset settings.
-				$settings = array();
-	
+
 				// Save settings.
-				$this->update_plugin_settings( $settings );
-	
+				$this->update_plugin_settings( array() );
+
 				// Return success response.
 				wp_send_json_success();
-				
+
 			} else {
 
 				// Log that we could not revoke the access token.
-				$this->log_error( __METHOD__ . '(): Unable to revoke access token; '. rgar( $revoke, 'error' ) );
-	
+				$this->log_error( __METHOD__ . '(): Unable to revoke access token; ' . rgar( $revoke, 'error' ) );
+
 				// Return error response.
 				wp_send_json_error( array( 'message' => esc_html__( 'Unable to de-authorize with Slack.', 'gravityformsslack' ) ) );
 
 			}
 
-		} catch ( \Exception $e ) {
+		} catch ( Exception $e ) {
 
 			// Log that we could not revoke the access token.
-			$this->log_error( __METHOD__ . '(): Unable to revoke access token; '. $e->getMessage() );
+			$this->log_error( __METHOD__ . '(): Unable to revoke access token; ' . $e->getMessage() );
 
 			// Return error response.
 			wp_send_json_error( array( 'message' => $e->getMessage() ) );
@@ -482,13 +557,13 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @uses GFFeedAddOn::get_default_feed_name()
-	 * @uses GFSlack::channels_for_feed_setting()
-	 * @uses GFSlack::fileupload_fields_for_feed_setting()
-	 * @uses GFSlack::groups_for_feed_setting()
-	 * @uses GFSlack::send_to_for_feed_setting()
-	 * @uses GFSlack::tooltip_for_feed_setting()
-	 * @uses GFSlack::users_for_feed_setting()
+	 * @uses   GFFeedAddOn::get_default_feed_name()
+	 * @uses   GFSlack::channels_for_feed_setting()
+	 * @uses   GFSlack::fileupload_fields_for_feed_setting()
+	 * @uses   GFSlack::groups_for_feed_setting()
+	 * @uses   GFSlack::send_to_for_feed_setting()
+	 * @uses   GFSlack::tooltip_for_feed_setting()
+	 * @uses   GFSlack::users_for_feed_setting()
 	 *
 	 * @return array $settings
 	 */
@@ -498,98 +573,98 @@ class GFSlack extends GFFeedAddOn {
 			array(
 				'fields' => array(
 					array(
-						'name'           => 'feed_name',
-						'label'          => esc_html__( 'Name', 'gravityformsslack' ),
-						'type'           => 'text',
-						'class'          => 'medium',
-						'required'       => true,
-						'tooltip'        => $this->tooltip_for_feed_setting( 'feed_name' ),
-						'default_value'  => $this->get_default_feed_name(),
+						'name'          => 'feed_name',
+						'label'         => esc_html__( 'Name', 'gravityformsslack' ),
+						'type'          => 'text',
+						'class'         => 'medium',
+						'required'      => true,
+						'tooltip'       => $this->tooltip_for_feed_setting( 'feed_name' ),
+						'default_value' => $this->get_default_feed_name(),
 					),
 					array(
-						'name'           => 'action',
-						'label'          => esc_html__( 'Action', 'gravityformsslack' ),
-						'type'           => 'radio',
-						'required'       => true,
-						'onchange'       => "jQuery(this).parents('form').submit();",
-						'choices'        => $this->action_for_feed_setting(),
+						'name'     => 'action',
+						'label'    => esc_html__( 'Action', 'gravityformsslack' ),
+						'type'     => 'radio',
+						'required' => true,
+						'onchange' => "jQuery(this).parents('form').submit();",
+						'choices'  => $this->action_for_feed_setting(),
 					),
 					array(
-						'name'           => 'email',
-						'label'          => esc_html__( 'Email Address', 'gravityformsslack' ),
-						'type'           => 'field_select',
-						'required'       => true,
-						'tooltip'        => $this->tooltip_for_feed_setting( 'email' ),
-						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
-						'args'           => array( 'input_types' => array( 'email' ) ),
+						'name'       => 'email',
+						'label'      => esc_html__( 'Email Address', 'gravityformsslack' ),
+						'type'       => 'field_select',
+						'required'   => true,
+						'tooltip'    => $this->tooltip_for_feed_setting( 'email' ),
+						'dependency' => array( 'field' => 'action', 'values' => array( 'invite' ) ),
+						'args'       => array( 'input_types' => array( 'email' ) ),
 					),
 					array(
-						'name'           => 'first_name',
-						'label'          => esc_html__( 'First Name', 'gravityformsslack' ),
-						'type'           => 'field_select',
-						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
+						'name'       => 'first_name',
+						'label'      => esc_html__( 'First Name', 'gravityformsslack' ),
+						'type'       => 'field_select',
+						'dependency' => array( 'field' => 'action', 'values' => array( 'invite' ) ),
 					),
 					array(
-						'name'           => 'last_name',
-						'label'          => esc_html__( 'Last Name', 'gravityformsslack' ),
-						'type'           => 'field_select',
-						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
+						'name'       => 'last_name',
+						'label'      => esc_html__( 'Last Name', 'gravityformsslack' ),
+						'type'       => 'field_select',
+						'dependency' => array( 'field' => 'action', 'values' => array( 'invite' ) ),
 					),
 					array(
-						'name'           => 'channels[]',
-						'label'          => esc_html__( 'Slack Channels', 'gravityformsslack' ),
-						'type'           => 'select',
-						'class'          => 'medium',
-						'choices'        => $this->channels_for_feed_setting( false ),
-						'multiple'       => true,
-						'dependency'     => array( 'field' => 'action', 'values' => array( 'invite' ) ),
+						'name'       => 'channels[]',
+						'label'      => esc_html__( 'Slack Channels', 'gravityformsslack' ),
+						'type'       => 'select',
+						'class'      => 'medium',
+						'choices'    => $this->channels_for_feed_setting( false ),
+						'multiple'   => true,
+						'dependency' => array( 'field' => 'action', 'values' => array( 'invite' ) ),
 					),
 					array(
-						'name'           => 'send_to',
-						'label'          => esc_html__( 'Send To', 'gravityformsslack' ),
-						'type'           => 'radio',
-						'required'       => true,
-						'onchange'       => "jQuery(this).parents('form').submit();",
-						'choices'        => $this->send_to_for_feed_setting(),
-						'tooltip'        => $this->tooltip_for_feed_setting( 'send_to' ),
-						'dependency'     => array( 'field' => 'action', 'values' => array( 'message' ) ),
+						'name'       => 'send_to',
+						'label'      => esc_html__( 'Send To', 'gravityformsslack' ),
+						'type'       => 'radio',
+						'required'   => true,
+						'onchange'   => "jQuery(this).parents('form').submit();",
+						'choices'    => $this->send_to_for_feed_setting(),
+						'tooltip'    => $this->tooltip_for_feed_setting( 'send_to' ),
+						'dependency' => array( 'field' => 'action', 'values' => array( 'message' ) ),
 					),
 					array(
-						'name'           => 'channel',
-						'label'          => esc_html__( 'Slack Channel', 'gravityformsslack' ),
-						'type'           => 'select',
-						'required'       => true,
-						'choices'        => $this->channels_for_feed_setting(),
-						'tooltip'        => $this->tooltip_for_feed_setting( 'channel' ),
-						'dependency'     => array( 'field' => 'send_to', 'values' => array( 'channel' ) ),
+						'name'       => 'channel',
+						'label'      => esc_html__( 'Slack Channel', 'gravityformsslack' ),
+						'type'       => 'select',
+						'required'   => true,
+						'choices'    => $this->channels_for_feed_setting(),
+						'tooltip'    => $this->tooltip_for_feed_setting( 'channel' ),
+						'dependency' => array( 'field' => 'send_to', 'values' => array( 'channel' ) ),
 					),
 					array(
-						'name'           => 'group',
-						'label'          => esc_html__( 'Slack Private Group', 'gravityformsslack' ),
-						'type'           => 'select',
-						'required'       => true,
-						'choices'        => $this->groups_for_feed_setting(),
-						'tooltip'        => $this->tooltip_for_feed_setting( 'group' ),
-						'dependency'     => array( 'field' => 'send_to', 'values' => array( 'group' ) ),
+						'name'       => 'group',
+						'label'      => esc_html__( 'Slack Private Group', 'gravityformsslack' ),
+						'type'       => 'select',
+						'required'   => true,
+						'choices'    => $this->groups_for_feed_setting(),
+						'tooltip'    => $this->tooltip_for_feed_setting( 'group' ),
+						'dependency' => array( 'field' => 'send_to', 'values' => array( 'group' ) ),
 					),
 					array(
-						'name'           => 'user',
-						'label'          => esc_html__( 'Slack User', 'gravityformsslack' ),
-						'type'           => 'select',
-						'required'       => true,
-						'choices'        => $this->users_for_feed_setting(),
-						'tooltip'        => $this->tooltip_for_feed_setting( 'user' ),
-						'dependency'     => array( 'field' => 'send_to', 'values' => array( 'user' ) ),
+						'name'       => 'user',
+						'label'      => esc_html__( 'Slack User', 'gravityformsslack' ),
+						'type'       => 'select',
+						'required'   => true,
+						'choices'    => $this->users_for_feed_setting(),
+						'tooltip'    => $this->tooltip_for_feed_setting( 'user' ),
+						'dependency' => array( 'field' => 'send_to', 'values' => array( 'user' ) ),
 					),
 					array(
-						'name'           => 'message',
-						'label'          => esc_html__( 'Message', 'gravityformsslack' ),
-						'type'           => 'textarea',
-						'required'       => true,
-						'class'          => 'medium merge-tag-support mt-position-right mt-hide_all_fields',
-						'tooltip'        => $this->tooltip_for_feed_setting( 'message' ),
-						'value'          => 'Entry #{entry_id} ({entry_url}) has been added.',
-						'dependency'     => array( 'field' => 'send_to', 'values' => array( '_notempty_' ) ),
+						'name'       => 'message',
+						'label'      => esc_html__( 'Message', 'gravityformsslack' ),
+						'type'       => 'textarea',
+						'required'   => true,
+						'class'      => 'medium merge-tag-support mt-position-right mt-hide_all_fields',
+						'tooltip'    => $this->tooltip_for_feed_setting( 'message' ),
+						'value'      => 'Entry #{entry_id} ({entry_url}) has been added.',
+						'dependency' => array( 'field' => 'send_to', 'values' => array( '_notempty_' ) ),
 					),
 				),
 			),
@@ -640,33 +715,33 @@ class GFSlack extends GFFeedAddOn {
 		$tooltips = array();
 
 		// Feed Name.
-		$tooltips['feed_name']  = '<h6>'. esc_html__( 'Name', 'gravityformsslack' ) .'</h6>';
+		$tooltips['feed_name'] = '<h6>' . esc_html__( 'Name', 'gravityformsslack' ) . '</h6>';
 		$tooltips['feed_name'] .= esc_html__( 'Enter a feed name to uniquely identify this setup.', 'gravityformsslack' );
 
 		// Send To.
-		$tooltips['send_to']  = '<h6>'. esc_html__( 'Send To', 'gravityformsslack' ) .'</h6>';
+		$tooltips['send_to'] = '<h6>' . esc_html__( 'Send To', 'gravityformsslack' ) . '</h6>';
 		$tooltips['send_to'] .= esc_html__( 'Select what type of channel Slack will send the message to: a public channel, a private group or an IM channel.', 'gravityformsslack' );
 
 		// Email Address.
-		$tooltips['email']  = '<h6>'. esc_html__( 'Email Address', 'gravityformsslack' ) .'</h6>';
+		$tooltips['email'] = '<h6>' . esc_html__( 'Email Address', 'gravityformsslack' ) . '</h6>';
 		$tooltips['email'] .= esc_html__( 'Select what email field will be used to send the Slack invite.', 'gravityformsslack' );
 
 		// Channel.
-		$tooltips['channel']  = '<h6>'. esc_html__( 'Slack Channel', 'gravityformsslack' ) .'</h6>';
+		$tooltips['channel'] = '<h6>' . esc_html__( 'Slack Channel', 'gravityformsslack' ) . '</h6>';
 		$tooltips['channel'] .= esc_html__( 'Select which Slack channel this feed will post a message to.', 'gravityformsslack' );
 
 		// Private Group.
-		$tooltips['group']  = '<h6>'. esc_html__( 'Slack Private Group', 'gravityformsslack' ) .'</h6>';
+		$tooltips['group'] = '<h6>' . esc_html__( 'Slack Private Group', 'gravityformsslack' ) . '</h6>';
 		$tooltips['group'] .= esc_html__( 'Select which Slack private group this feed will post a message to.', 'gravityformsslack' );
 
 		// User.
-		$tooltips['user']  = '<h6>'. esc_html__( 'Slack User', 'gravityformsslack' ) .'</h6>';
+		$tooltips['user'] = '<h6>' . esc_html__( 'Slack User', 'gravityformsslack' ) . '</h6>';
 		$tooltips['user'] .= esc_html__( 'Select which Slack user this feed will post a message to.', 'gravityformsslack' );
 
 		// Message.
-		$tooltips['message']  = '<h6>'. __( 'Message', 'gravityformsslack' ) .'</h6>';
+		$tooltips['message'] = '<h6>' . __( 'Message', 'gravityformsslack' ) . '</h6>';
 		$tooltips['message'] .= esc_html__( 'Enter the message that will be posted to the room.', 'gravityformsslack' ) . '<br /><br />';
-		$tooltips['message'] .= '<strong>'. __( 'Available formatting:', 'gravityformsslack' ) .'</strong><br />';
+		$tooltips['message'] .= '<strong>' . __( 'Available formatting:', 'gravityformsslack' ) . '</strong><br />';
 		$tooltips['message'] .= '<strong>*asterisks*</strong> to create bold text<br />';
 		$tooltips['message'] .= '<em>_underscores_</em> to italicize text<br /><br />';
 		$tooltips['message'] .= '<strong>></strong> to indent a single line<br />';
@@ -675,11 +750,11 @@ class GFSlack extends GFFeedAddOn {
 		$tooltips['message'] .= '<strong>```triple backticks```</strong> create a block of pre-formatted, fixed-width text';
 
 		// Image Attachment.
-		$tooltips['attachments']  = '<h6>'. esc_html__( 'Image Attachments', 'gravityformsslack' ) .'</h6>';
+		$tooltips['attachments'] = '<h6>' . esc_html__( 'Image Attachments', 'gravityformsslack' ) . '</h6>';
 		$tooltips['attachments'] .= esc_html__( 'Select which file upload fields will be attached to the Slack message. Only image files will be attached.', 'gravityformsslack' );
 
 		// Feed Condition.
-		$tooltips['feed_condition']  = '<h6>'. esc_html__( 'Conditional Logic', 'gravityformsslack' ) .'</h6>';
+		$tooltips['feed_condition'] = '<h6>' . esc_html__( 'Conditional Logic', 'gravityformsslack' ) . '</h6>';
 		$tooltips['feed_condition'] .= esc_html__( 'When conditional logic is enabled, form submissions will only be posted to Slack when the condition is met. When disabled, all form submissions will be posted.', 'gravityformsslack' );
 
 		// Return desired tooltip.
@@ -693,7 +768,7 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.4
 	 * @access public
 	 *
-	 * @uses GFSlack::can_invite_to_team()
+	 * @uses   GFSlack::can_invite_to_team()
 	 *
 	 * @return array
 	 */
@@ -759,8 +834,8 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @param bool $include_initital Include initital "Select a Channel" choice.
 	 *
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::get_channels()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::get_channels()
 	 *
 	 * @return array
 	 */
@@ -809,8 +884,8 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::get_groups()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::get_groups()
 	 *
 	 * @return array
 	 */
@@ -856,8 +931,8 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::get_users()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::get_users()
 	 *
 	 * @return array
 	 */
@@ -906,8 +981,8 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @uses GFAPI::get_form()
-	 * @uses GFCommon::get_fields_by_type()
+	 * @uses   GFAPI::get_form()
+	 * @uses   GFCommon::get_fields_by_type()
 	 *
 	 * @return array
 	 */
@@ -944,7 +1019,7 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @uses GFSlack::initialize_api()
+	 * @uses   GFSlack::initialize_api()
 	 *
 	 * @return bool
 	 */
@@ -959,6 +1034,7 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
+	 *
 	 * @param  int $feed_id Feed ID requesting duplication ability.
 	 *
 	 * @return bool
@@ -1025,10 +1101,10 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @param array $feed Feed object.
 	 *
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::get_channel()
-	 * @uses GF_Slack_API::get_group()
-	 * @uses GF_Slack_API::get_user()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::get_channel()
+	 * @uses   GF_Slack_API::get_group()
+	 * @uses   GF_Slack_API::get_user()
 	 *
 	 * @return string
 	 */
@@ -1047,20 +1123,23 @@ class GFSlack extends GFFeedAddOn {
 		switch ( $feed['meta']['send_to'] ) {
 
 			case 'group':
-				$group = $this->api->get_group( $feed['meta']['group'] );
+				$group       = $this->api->get_group( $feed['meta']['group'] );
 				$destination = ( rgar( $group, 'group' ) ) ? $group['group']['name'] : $feed['meta']['group'];
+
 				return sprintf( esc_html__( 'Private Group: %s', 'gravityformsslack' ), $destination );
 				break;
 
 			case 'user':
-				$user = $this->api->get_user( $feed['meta']['user'] );
+				$user        = $this->api->get_user( $feed['meta']['user'] );
 				$destination = ( rgar( $user, 'user' ) ) ? $user['user']['name'] : $feed['meta']['user'];
+
 				return sprintf( esc_html__( 'Direct message to user: %s', 'gravityformsslack' ), $destination );
 				break;
 
 			default:
-				$channel = $this->api->get_channel( $feed['meta']['channel'] );
+				$channel     = $this->api->get_channel( $feed['meta']['channel'] );
 				$destination = ( rgar( $channel, 'channel' ) ) ? $channel['channel']['name'] : $feed['meta']['channel'];
+
 				return sprintf( esc_html__( 'Public Channel: %s', 'gravityformsslack' ), $destination );
 				break;
 
@@ -1084,16 +1163,17 @@ class GFSlack extends GFFeedAddOn {
 	 * @param array $entry The entry object currently being processed.
 	 * @param array $form  The form object currently being processed.
 	 *
-	 * @uses GFFeedAddOn::add_feed_error()
-	 * @uses GFSlack::initialize_api()
-	 * @uses GFSlack::send_invite()
-	 * @uses GFSlack::send_message()
+	 * @uses   GFFeedAddOn::add_feed_error()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GFSlack::send_invite()
+	 * @uses   GFSlack::send_message()
 	 */
 	public function process_feed( $feed, $entry, $form ) {
 
 		// If Slack instance is not initialized, exit.
 		if ( ! $this->initialize_api() ) {
 			$this->add_feed_error( esc_html__( 'Feed was not processed because API was not initialized.', 'gravityformsslack' ), $feed, $entry, $form );
+
 			return;
 		}
 
@@ -1122,12 +1202,14 @@ class GFSlack extends GFFeedAddOn {
 	 * @param array $entry The entry object currently being processed.
 	 * @param array $form  The form object currently being processed.
 	 *
-	 * @uses GFAddOn::get_field_value()
-	 * @uses GFAddOn::get_plugin_setting()
-	 * @uses GFCommon::is_invalid_or_empty_email()
-	 * @uses GFFeedAddOn::add_feed_error()
-	 * @uses GFSlack::can_invite_to_team()
-	 * @uses GF_Slack_API::invite_user()
+	 * @uses   GFAddOn::get_field_value()
+	 * @uses   GFAddOn::get_plugin_setting()
+	 * @uses   GFCommon::is_invalid_or_empty_email()
+	 * @uses   GFFeedAddOn::add_feed_error()
+	 * @uses   GFSlack::can_invite_to_team()
+	 * @uses   GF_Slack_API::invite_user()
+	 *
+	 * @return array
 	 */
 	public function send_invite( $feed, $entry, $form ) {
 
@@ -1231,7 +1313,10 @@ class GFSlack extends GFFeedAddOn {
 			$this->log_debug( __METHOD__ . '(): User was invited.' );
 		} else {
 			$this->add_feed_error( esc_html__( 'User was not invited.', 'gravityformsslack' ), $feed, $entry, $form );
+			$this->log_error( __METHOD__ . '(): Invite response: ' . print_r( $invite, true ) );
 		}
+
+		return $entry;
 
 	}
 
@@ -1245,12 +1330,12 @@ class GFSlack extends GFFeedAddOn {
 	 * @param array $entry The entry object currently being processed.
 	 * @param array $form  The form object currently being processed.
 	 *
-	 * @uses GFAddOn::log_debug()
-	 * @uses GFCommon::replace_variables()
-	 * @uses GFFeedAddOn::add_feed_error()
-	 * @uses GFSlack::open_im_channel()
-	 * @uses GFSlack::prepare_attachments()
-	 * @uses GF_Slack_API::post_message()
+	 * @uses   GFAddOn::log_debug()
+	 * @uses   GFCommon::replace_variables()
+	 * @uses   GFFeedAddOn::add_feed_error()
+	 * @uses   GFSlack::open_im_channel()
+	 * @uses   GFSlack::prepare_attachments()
+	 * @uses   GF_Slack_API::post_message()
 	 */
 	public function send_message( $feed, $entry, $form ) {
 
@@ -1273,7 +1358,10 @@ class GFSlack extends GFFeedAddOn {
 		 * @param array  $entry    The current entry object.
 		 * @param array  $form     The current form object.
 		 */
-		$message_username = gf_apply_filters( array( 'gform_slack_username', $form['id'] ), 'Gravity Forms', $feed, $entry, $form );
+		$message_username = gf_apply_filters( array(
+			'gform_slack_username',
+			$form['id'],
+		), 'Gravity Forms', $feed, $entry, $form );
 
 		// Prepare notification array.
 		$message = array(
@@ -1299,6 +1387,10 @@ class GFSlack extends GFFeedAddOn {
 				break;
 
 		}
+
+		// Replace entry URL in message.
+		$entry_url       = admin_url( 'admin.php?page=gf_entries&view=entry&id=' . rgar( $form, 'id' ) . '&lid=' . rgar( $entry, 'id' ) );
+		$message['text'] = str_replace( '{entry_url}', esc_url_raw( $entry_url ), $message['text'] );
 
 		// Replace merge tags on notification message.
 		$message['text'] = GFCommon::replace_variables( $message['text'], $form, $entry, false, false, false, 'text' );
@@ -1350,7 +1442,7 @@ class GFSlack extends GFFeedAddOn {
 	 * @param array $entry   The entry object currently being processed.
 	 * @param array $form    The form object currently being processed.
 	 *
-	 * @uses GFAddOn::get_field_value()
+	 * @uses   GFAddOn::get_field_value()
 	 *
 	 * @return array
 	 */
@@ -1404,7 +1496,7 @@ class GFSlack extends GFFeedAddOn {
 			$file_details = wp_check_filetype_and_ext( $file_path, basename( $file_path ) );
 
 			// If file is not an image, skip it.
-			if ( strpos( $file_details['type'], 'image') === false ) {
+			if ( strpos( $file_details['type'], 'image' ) === false ) {
 				continue;
 			}
 
@@ -1440,10 +1532,10 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @param string $auth_token Authentication token.
 	 *
-	 * @uses GFAddOn::get_plugin_setting()
-	 * @uses GFAddOn::log_debug()
-	 * @uses GFAddOn::log_error()
-	 * @uses GF_Slack_API::auth_test()
+	 * @uses   GFAddOn::get_plugin_setting()
+	 * @uses   GFAddOn::log_debug()
+	 * @uses   GFAddOn::log_error()
+	 * @uses   GF_Slack_API::auth_test()
 	 *
 	 * @return bool|null
 	 */
@@ -1492,7 +1584,7 @@ class GFSlack extends GFFeedAddOn {
 		} else {
 
 			// Log that authentication test failed.
-			$this->log_error( __METHOD__ . '(): API credentials are invalid; '. $auth_test['error'] );
+			$this->log_error( __METHOD__ . '(): API credentials are invalid; ' . $auth_test['error'] );
 
 			return false;
 
@@ -1508,8 +1600,8 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @param string $user User ID.
 	 *
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::open_im()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::open_im()
 	 *
 	 * @return null|string
 	 */
@@ -1534,9 +1626,9 @@ class GFSlack extends GFFeedAddOn {
 	 * @since  1.4.2
 	 * @access public
 	 *
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::auth_test()
-	 * @uses GF_Slack_API::get_user()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::auth_test()
+	 * @uses   GF_Slack_API::get_user()
 	 *
 	 * @return bool
 	 */
@@ -1567,10 +1659,10 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @param string $auth_token Authentication token.
 	 *
-	 * @uses GFAddOn::get_plugin_settings()
-	 * @uses GFAddOn::update_plugin_settings()
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::get_team_info()
+	 * @uses   GFAddOn::get_plugin_settings()
+	 * @uses   GFAddOn::update_plugin_settings()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::get_team_info()
 	 *
 	 * @return string|null
 	 */
@@ -1605,12 +1697,12 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @param string $previous_version Previous version number.
 	 *
-	 * @uses GFAddOn::get_plugin_settings()
-	 * @uses GFAddOn::update_plugin_settings()
-	 * @uses GFFeedAddOn::get_feeds()
-	 * @uses GFFeedAddOn::update_feed_meta()
-	 * @uses GFSlack::initialize_api()
-	 * @uses GF_Slack_API::get_team_info()
+	 * @uses   GFAddOn::get_plugin_settings()
+	 * @uses   GFAddOn::update_plugin_settings()
+	 * @uses   GFFeedAddOn::get_feeds()
+	 * @uses   GFFeedAddOn::update_feed_meta()
+	 * @uses   GFSlack::initialize_api()
+	 * @uses   GF_Slack_API::get_team_info()
 	 */
 	public function upgrade( $previous_version ) {
 
