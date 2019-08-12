@@ -225,7 +225,7 @@ class GFSlack extends GFFeedAddOn {
 					),
 				),
 				'strings' => array(
-					'disconnect'        => esc_html__( 'Are you sure you want to disconnect from Slack?', 'gravityformsslack' ),
+					'disconnect'        => wp_strip_all_tags( __( 'Are you sure you want to disconnect from Slack?', 'gravityformsslack' ) ),
 					'pluginSettingsURL' => admin_url( 'admin.php?page=gf_settings&subview=' . $this->get_slug() ),
 				),
 			),
