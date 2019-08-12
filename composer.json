@@ -1,0 +1,9 @@
+{
+    "name": "wp-premium/gravityformsslack",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "classmap": [
+            "."
+        ]
+    }
+}
