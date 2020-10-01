@@ -3,9 +3,9 @@
 	width: 0;
 }
 
-#tab_gravityformsslack table.gforms_form_settings > tbody > tr:last-child,
-#auth_token {
-	display: none;
+#tab_gravityformsslack table.gforms_form_settings > tbody > tr:last-child ,
+#tab_gravityformsslack .gform-settings-save-container {
+    display: none;
 }
 
 #gform_slack_auth_button {
@@ -14,8 +14,4 @@
 
 #gform_slack_deauth_button {
 	margin-top: 1em;
-}
-
-#gform_slack_auth_container .button {
-	vertical-align: baseline;
 }

@@ -212,11 +212,13 @@ class GFSlack extends GFFeedAddOn {
 	 */
 	public function scripts() {
 
+		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || isset( $_GET['gform_debug'] ) ? '' : '.min';
+
 		$scripts = array(
 			array(
 				'handle'  => 'gform_slack_pluginsettings',
 				'deps'    => array( 'jquery' ),
-				'src'     => $this->get_base_url() . '/js/plugin_settings.js',
+				'src'     => $this->get_base_url() . "/js/plugin_settings{$min}.js",
 				'version' => $this->_version,
 				'enqueue' => array(
 					array(
@@ -226,6 +228,7 @@ class GFSlack extends GFFeedAddOn {
 				),
 				'strings' => array(
 					'disconnect'        => wp_strip_all_tags( __( 'Are you sure you want to disconnect from Slack?', 'gravityformsslack' ) ),
+					'nonce_deauthorize' => wp_create_nonce( 'gfslack_deauthorize' ),
 					'pluginSettingsURL' => admin_url( 'admin.php?page=gf_settings&subview=' . $this->get_slug() ),
 				),
 			),
@@ -245,10 +248,12 @@ class GFSlack extends GFFeedAddOn {
 	 */
 	public function styles() {
 
+		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || isset( $_GET['gform_debug'] ) ? '' : '.min';
+
 		$styles = array(
 			array(
 				'handle'  => 'gform_slack_pluginsettings',
-				'src'     => $this->get_base_url() . '/css/plugin_settings.css',
+				'src'     => $this->get_base_url() . "/css/plugin_settings{$min}.css",
 				'version' => $this->_version,
 				'enqueue' => array(
 					array(
@@ -263,6 +268,19 @@ class GFSlack extends GFFeedAddOn {
 
 	}
 
+	/**
+	 * Return the plugin's icon for the plugin/form settings menu.
+	 *
+	 * @since 1.10
+	 *
+	 * @return string
+	 */
+	public function get_menu_icon() {
+
+		return file_get_contents( $this->get_base_path() . '/images/menu-icon.svg' );
+
+	}
+
 
 
 
@@ -274,22 +292,27 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.7
 	 * @access public
-	 *
-	 * @uses   GFAddOn::get_plugin_settings()
-	 * @uses   GFAddOn::update_plugin_settings()
-	 * @uses   GFCommon::add_error_message()
-	 * @uses   GFSlack::get_team_name()
 	 */
 	public function plugin_settings_page() {
 
 		// If access token is provided, save it.
-		if ( rgget( 'access_token' ) ) {
+		if ( rgpost( 'access_token' ) ) {
+
+			// If state does not match, do not save.
+			if ( ! wp_verify_nonce( rgpost( 'state' ), $this->get_authentication_state_action() ) ) {
+
+				// Add error message.
+				GFCommon::add_error_message( esc_html__( 'Unable to authenticate with Slack due to mismatched state.', 'gravityformsslack' ) );
+
+				return parent::plugin_settings_page();
+
+			}
 
 			// Get current plugin settings.
 			$settings = $this->get_plugin_settings();
 
 			// Add access token to plugin settings.
-			$settings['auth_token'] = rgget( 'access_token' );
+			$settings['auth_token'] = rgpost( 'access_token' );
 
 			// Get team name.
 			$settings['team_name'] = $this->get_team_name( $settings['auth_token'] );
@@ -300,7 +323,7 @@ class GFSlack extends GFFeedAddOn {
 		}
 
 		// If error is provided, display message.
-		if ( rgget( 'auth_error' ) ) {
+		if ( rgpost( 'auth_error' ) || rgpost( 'error' ) ) {
 
 			// Add error message.
 			GFCommon::add_error_message( esc_html__( 'Unable to authenticate with Slack.', 'gravityformsslack' ) );
@@ -316,8 +339,6 @@ class GFSlack extends GFFeedAddOn {
 	 *
 	 * @since  1.0
 	 * @access public
-	 *
-	 * @uses   GFSlack::plugin_settings_description()
 	 *
 	 * @return array
 	 */
@@ -343,18 +364,6 @@ class GFSlack extends GFFeedAddOn {
 						'type'          => 'hidden',
 						'readonly'      => true,
 						'save_callback' => array( $this, 'update_team_name' ),
-					),
-					array(
-						'type'        => 'save',
-						'value'       => esc_html__( 'Connect to Slack', 'gravityformsslack' ),
-						'after_input' => sprintf(
-							' %s <a href="#" id="gform_slack_auth_standard">%s</a>',
-							esc_html__( 'or', 'gravityformsslack' ),
-							esc_html__( 'use standard authentication' )
-						),
-						'messages'    => array(
-							'success' => esc_html__( 'Slack settings have been updated.', 'gravityformsslack' ),
-						),
 					),
 				),
 			),
@@ -425,59 +434,28 @@ class GFSlack extends GFFeedAddOn {
 			$html .= sprintf( '%s (%s)', esc_html( $account['team'] ), esc_html( $account['user'] ) );
 			$html .= '</p>';
 			$html .= sprintf(
-				' <a href="#" class="button button-primary" id="gform_slack_deauth_button">%1$s</a>',
+				' <a href="#" class="button primary" id="gform_slack_deauth_button">%1$s</a>',
 				esc_html__( 'Disconnect Slack', 'gravityformsslack' )
 			);
 
 		} else {
 
 			// Prepare authorization URL.
+			$license_key  = GFCommon::get_key();
 			$settings_url = urlencode( admin_url( 'admin.php?page=gf_settings&subview=' . $this->_slug ) );
-			$auth_url     = add_query_arg( array( 'redirect_to' => $settings_url ), 'https://www.gravityhelp.com/wp-json/gravityapi/v1/auth/slack' );
+			$auth_url     = add_query_arg( array(
+				'redirect_to' => $settings_url,
+				'license'     => $license_key,
+				'state'       => wp_create_nonce( $this->get_authentication_state_action() ),
+			), $this->get_gravity_api_url( '/auth/slack' ) );
 
 			$html .= sprintf(
-				'<span id="gform_slack_auth_container"><a href="%2$s" class="button button-primary" id="gform_slack_auth_button">%1$s</a> or <a href="#" id="gform_slack_auth_legacy">use a legacy token</a></span><br />',
+				'<span id="gform_slack_auth_container" style="%3$s"><a href="%2$s" class="button primary" id="gform_slack_auth_button">%1$s</a></span>',
 				esc_html__( 'Connect to Slack', 'gravityformsslack' ),
-				$auth_url
+				$auth_url,
+				$this->get_setting( 'auth_token' ) ? 'display:none;' : 'display:block'
 			);
 
-			// Prepare Legacy Token field.
-			$legacy                = $field;
-			$legacy['class']       = 'large';
-			$legacy['placeholder'] = esc_html__( 'Legacy Token', 'gravityformsslack' );
-
-			// Display legacy token field.
-			$html .= $this->settings_text( $legacy, false );
-
-		}
-
-		if ( $echo ) {
-			echo $html;
-		}
-
-		return $html;
-
-	}
-
-	/**
-	 * Display HTML after save button.
-	 *
-	 * @since  1.8
-	 * @access public
-	 *
-	 * @param array $field Field settings.
-	 * @param bool  $echo  Display field. Defaults to true.
-	 *
-	 * @uses   GFAddOn::settings_save()
-	 *
-	 * @return string
-	 */
-	public function settings_save( $field, $echo = true ) {
-
-		$html = parent::settings_save( $field, false );
-
-		if ( rgar( $field, 'after_input' ) ) {
-			$html .= $field['after_input'];
 		}
 
 		if ( $echo ) {
@@ -502,6 +480,16 @@ class GFSlack extends GFFeedAddOn {
 	 * @uses   GF_Slack_API::auth_revoke()
 	 */
 	public function ajax_deauthorize() {
+
+		// Verify nonce.
+		if ( wp_verify_nonce( rgget( 'nonce' ), 'gfslack_deauthorize' ) === false ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Access denied.', 'gravityformsslack' ) ) );
+		}
+
+		// If user is not authorized, exit.
+		if ( ! GFCommon::current_user_can_any( $this->_capabilities_settings_page ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Access denied.', 'gravityformsslack' ) ) );
+		}
 
 		// Initialize Slack API.
 		$this->initialize_api();
@@ -1652,6 +1640,19 @@ class GFSlack extends GFFeedAddOn {
 	}
 
 	/**
+	 * Get action name for authentication state.
+	 *
+	 * @since 1.11
+	 *
+	 * @return string
+	 */
+	public function get_authentication_state_action() {
+
+		return 'gform_slack_authentication_state';
+
+	}
+
+	/**
 	 * Get and save team name when saving plugin settings.
 	 *
 	 * @since  1.4.1
@@ -1761,6 +1762,19 @@ class GFSlack extends GFFeedAddOn {
 
 		}
 
+	}
+
+	/**
+	 * Get Gravity API URL.
+	 *
+	 * @since 1.9.2
+	 *
+	 * @param string $path Path.
+	 *
+	 * @return string
+	 */
+	public function get_gravity_api_url( $path = '' ) {
+		return ( defined( 'GRAVITY_API_URL' ) ? GRAVITY_API_URL : 'https://gravityapi.com/wp-json/gravityapi/v1' ) . $path;
 	}
 
 }

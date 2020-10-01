@@ -1,3 +1,15 @@
+### 1.12
+- Added support for Gravity Forms 2.5.
+
+### 1.11 | 2020-07-14
+- Added security enhancements.
+
+
+### 1.10 | 2020-05-20
+- Added translations for Hebrew, Hindi, Japanese, and Turkish.
+- Updated Javascript files, stylesheets to use minified versions.
+
+
 ### 1.9 | 2019-08-07
 - Added security enhancements.
 

@@ -1,17 +1,17 @@
-# Copyright (C) 2019 rocketgenius
-# This file is distributed under the same license as the Gravity Forms Slack Add-On plugin.
+# Copyright (C) 2020 Gravity Forms
+# This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gravity Forms Slack Add-On 1.9\n"
+"Project-Id-Version: Gravity Forms Slack Add-On 1.12\n"
 "Report-Msgid-Bugs-To: https://gravityforms.com/support\n"
 "Last-Translator: Gravity Forms <support@gravityforms.com>\n"
 "Language-Team: Gravity Forms <support@gravityforms.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2019-08-07T14:24:07+00:00\n"
+"POT-Creation-Date: 2020-09-29T21:32:21+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.2.0\n"
+"X-Generator: WP-CLI 2.4.0\n"
 "X-Domain: gravityformsslack\n"
 
 #. Plugin Name of the plugin
@@ -19,7 +19,8 @@ msgid "Gravity Forms Slack Add-On"
 msgstr ""
 
 #. Plugin URI of the plugin
-msgid "https://www.gravityforms.com"
+#. Author URI of the plugin
+msgid "https://gravityforms.com"
 msgstr ""
 
 #. Description of the plugin
@@ -27,240 +28,232 @@ msgid "Integrates Gravity Forms with Slack, allowing alerts for Gravity Forms ac
 msgstr ""
 
 #. Author of the plugin
-msgid "rocketgenius"
-msgstr ""
-
-#. Author URI of the plugin
-msgid "https://www.rocketgenius.com"
+msgid "Gravity Forms"
 msgstr ""
 
 #: class-gf-slack.php:184
 msgid "Send message to Slack only when payment is received."
 msgstr ""
 
-#: class-gf-slack.php:228
+#: class-gf-slack.php:230
 msgid "Are you sure you want to disconnect from Slack?"
 msgstr ""
 
-#: class-gf-slack.php:306
+#: class-gf-slack.php:305
+msgid "Unable to authenticate with Slack due to mismatched state."
+msgstr ""
+
+#: class-gf-slack.php:329
 msgid "Unable to authenticate with Slack."
 msgstr ""
 
-#: class-gf-slack.php:331
+#: class-gf-slack.php:352
 msgid "Slack provides simple group chat for your team. Use Gravity Forms to alert your Slack channels of a new form submission. If you don't have a Slack account, you can %1$s sign up for one here.%2$s"
 msgstr ""
 
-#: class-gf-slack.php:349
-#: class-gf-slack.php:440
-msgid "Connect to Slack"
-msgstr ""
-
-#: class-gf-slack.php:352
-msgid "or"
-msgstr ""
-
-#: class-gf-slack.php:356
-msgid "Slack settings have been updated."
-msgstr ""
-
-#: class-gf-slack.php:424
+#: class-gf-slack.php:433
 msgid "Signed into Slack team: "
 msgstr ""
 
-#: class-gf-slack.php:429
+#: class-gf-slack.php:438
 msgid "Disconnect Slack"
 msgstr ""
 
-#: class-gf-slack.php:447
-msgid "Legacy Token"
+#: class-gf-slack.php:454
+msgid "Connect to Slack"
 msgstr ""
 
-#: class-gf-slack.php:532
+#: class-gf-slack.php:486
+#: class-gf-slack.php:491
+msgid "Access denied."
+msgstr ""
+
+#: class-gf-slack.php:520
 msgid "Unable to de-authorize with Slack."
 msgstr ""
 
-#: class-gf-slack.php:577
-#: class-gf-slack.php:718
-#: class-gf-slack.php:1065
+#: class-gf-slack.php:565
+#: class-gf-slack.php:706
+#: class-gf-slack.php:1053
 msgid "Name"
 msgstr ""
 
-#: class-gf-slack.php:586
-#: class-gf-slack.php:1066
+#: class-gf-slack.php:574
+#: class-gf-slack.php:1054
 msgid "Action"
 msgstr ""
 
-#: class-gf-slack.php:594
-#: class-gf-slack.php:726
+#: class-gf-slack.php:582
+#: class-gf-slack.php:714
 msgid "Email Address"
 msgstr ""
 
-#: class-gf-slack.php:603
+#: class-gf-slack.php:591
 msgid "First Name"
 msgstr ""
 
-#: class-gf-slack.php:609
+#: class-gf-slack.php:597
 msgid "Last Name"
 msgstr ""
 
-#: class-gf-slack.php:615
+#: class-gf-slack.php:603
 msgid "Slack Channels"
 msgstr ""
 
-#: class-gf-slack.php:624
-#: class-gf-slack.php:722
-#: class-gf-slack.php:1067
+#: class-gf-slack.php:612
+#: class-gf-slack.php:710
+#: class-gf-slack.php:1055
 msgid "Send To"
 msgstr ""
 
-#: class-gf-slack.php:634
-#: class-gf-slack.php:730
+#: class-gf-slack.php:622
+#: class-gf-slack.php:718
 msgid "Slack Channel"
 msgstr ""
 
-#: class-gf-slack.php:643
-#: class-gf-slack.php:734
+#: class-gf-slack.php:631
+#: class-gf-slack.php:722
 msgid "Slack Private Group"
 msgstr ""
 
-#: class-gf-slack.php:652
-#: class-gf-slack.php:738
+#: class-gf-slack.php:640
+#: class-gf-slack.php:726
 msgid "Slack User"
 msgstr ""
 
-#: class-gf-slack.php:661
-#: class-gf-slack.php:742
+#: class-gf-slack.php:649
+#: class-gf-slack.php:730
 msgid "Message"
 msgstr ""
 
-#: class-gf-slack.php:680
-#: class-gf-slack.php:753
+#: class-gf-slack.php:668
+#: class-gf-slack.php:741
 msgid "Image Attachments"
 msgstr ""
 
-#: class-gf-slack.php:690
-#: class-gf-slack.php:757
+#: class-gf-slack.php:678
+#: class-gf-slack.php:745
 msgid "Conditional Logic"
 msgstr ""
 
-#: class-gf-slack.php:692
+#: class-gf-slack.php:680
 msgid "Enable"
 msgstr ""
 
-#: class-gf-slack.php:693
+#: class-gf-slack.php:681
 msgid "Post to Slack if"
 msgstr ""
 
-#: class-gf-slack.php:719
+#: class-gf-slack.php:707
 msgid "Enter a feed name to uniquely identify this setup."
 msgstr ""
 
-#: class-gf-slack.php:723
+#: class-gf-slack.php:711
 msgid "Select what type of channel Slack will send the message to: a public channel, a private group or an IM channel."
 msgstr ""
 
-#: class-gf-slack.php:727
+#: class-gf-slack.php:715
 msgid "Select what email field will be used to send the Slack invite."
 msgstr ""
 
-#: class-gf-slack.php:731
+#: class-gf-slack.php:719
 msgid "Select which Slack channel this feed will post a message to."
 msgstr ""
 
-#: class-gf-slack.php:735
+#: class-gf-slack.php:723
 msgid "Select which Slack private group this feed will post a message to."
 msgstr ""
 
-#: class-gf-slack.php:739
+#: class-gf-slack.php:727
 msgid "Select which Slack user this feed will post a message to."
 msgstr ""
 
-#: class-gf-slack.php:743
+#: class-gf-slack.php:731
 msgid "Enter the message that will be posted to the room."
 msgstr ""
 
-#: class-gf-slack.php:744
+#: class-gf-slack.php:732
 msgid "Available formatting:"
 msgstr ""
 
-#: class-gf-slack.php:754
+#: class-gf-slack.php:742
 msgid "Select which file upload fields will be attached to the Slack message. Only image files will be attached."
 msgstr ""
 
-#: class-gf-slack.php:758
+#: class-gf-slack.php:746
 msgid "When conditional logic is enabled, form submissions will only be posted to Slack when the condition is met. When disabled, all form submissions will be posted."
 msgstr ""
 
-#: class-gf-slack.php:780
-#: class-gf-slack.php:1090
+#: class-gf-slack.php:768
+#: class-gf-slack.php:1078
 msgid "Send Message"
 msgstr ""
 
-#: class-gf-slack.php:789
-#: class-gf-slack.php:1087
+#: class-gf-slack.php:777
+#: class-gf-slack.php:1075
 msgid "Invite to Team"
 msgstr ""
 
-#: class-gf-slack.php:811
+#: class-gf-slack.php:799
 msgid "Public Channel"
 msgstr ""
 
-#: class-gf-slack.php:816
+#: class-gf-slack.php:804
 msgid "Private Group"
 msgstr ""
 
-#: class-gf-slack.php:821
+#: class-gf-slack.php:809
 msgid "Direct Message"
 msgstr ""
 
-#: class-gf-slack.php:850
+#: class-gf-slack.php:838
 msgid "Select a Channel"
 msgstr ""
 
-#: class-gf-slack.php:897
+#: class-gf-slack.php:885
 msgid "Select a Group"
 msgstr ""
 
-#: class-gf-slack.php:944
+#: class-gf-slack.php:932
 msgid "Select a User"
 msgstr ""
 
-#: class-gf-slack.php:1129
+#: class-gf-slack.php:1117
 msgid "Private Group: %s"
 msgstr ""
 
-#: class-gf-slack.php:1136
+#: class-gf-slack.php:1124
 msgid "Direct message to user: %s"
 msgstr ""
 
-#: class-gf-slack.php:1143
+#: class-gf-slack.php:1131
 msgid "Public Channel: %s"
 msgstr ""
 
-#: class-gf-slack.php:1175
+#: class-gf-slack.php:1163
 msgid "Feed was not processed because API was not initialized."
 msgstr ""
 
-#: class-gf-slack.php:1218
+#: class-gf-slack.php:1206
 msgid "Unable to invite user because Slack API user does not have permission to invite users."
 msgstr ""
 
-#: class-gf-slack.php:1227
+#: class-gf-slack.php:1215
 msgid "Unable to invite user because no team name is defined."
 msgstr ""
 
-#: class-gf-slack.php:1236
+#: class-gf-slack.php:1224
 msgid "Unable to invite user because no email address was provided."
 msgstr ""
 
-#: class-gf-slack.php:1315
+#: class-gf-slack.php:1303
 msgid "User was not invited."
 msgstr ""
 
-#: class-gf-slack.php:1414
+#: class-gf-slack.php:1402
 msgid "Notification message is empty."
 msgstr ""
 
-#: class-gf-slack.php:1429
+#: class-gf-slack.php:1417
 msgid "Message was not posted to channel."
 msgstr ""
